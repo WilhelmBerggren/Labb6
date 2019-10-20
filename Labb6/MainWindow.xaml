@@ -1,0 +1,28 @@
+﻿<Window x:Class="Labb6.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Labb6"
+        mc:Ignorable="d"
+        Title="Ye Olde Rubber Duck" Height="229.137" Width="496.044">
+    <Grid Margin="0,0,-8,0">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="98*"/>
+        </Grid.RowDefinitions>
+        <ListBox HorizontalAlignment="Left" Height="100" Margin="9,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <ListBox HorizontalAlignment="Left" Height="100" Margin="114,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <ListBox HorizontalAlignment="Left" Height="100" Margin="219,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Label Content="Bartender" HorizontalAlignment="Left" Margin="9,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Label Content="Servitris" HorizontalAlignment="Left" Margin="114,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Label Content="Gäster" HorizontalAlignment="Left" Margin="219,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Button Content="Pausa/fortsätt" Name="Pause_Bartender" Click="Pause_Bartender_Click" HorizontalAlignment="Left" Margin="9,142.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Button Content="Pausa/fortsätt" Name="Pause_Waitress" Click="Pause_Waitress_Click" HorizontalAlignment="Left" Margin="114,142.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Button Content="Pausa/fortsätt" Name="Pause_Guests" Click="Pause_Guests_Click" HorizontalAlignment="Left" Margin="219,142.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <Button Content="Öppna/stäng baren" Name="ToggleBarOpen" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="9,167.333,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
+        <Button Content="Panik! (stoppa alla trådar)" Name="Panic" Click="Panic_Click" HorizontalAlignment="Left" Margin="324,142.333,0,0" VerticalAlignment="Top" Width="157" Grid.Row="1"/>
+        <TextBlock HorizontalAlignment="Left" Margin="324,37.333,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="100" Width="157" Grid.Row="1"/>
+
+    </Grid>
+</Window>
