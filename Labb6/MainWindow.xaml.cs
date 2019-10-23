@@ -1,19 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Labb6
 {
@@ -22,123 +12,250 @@ namespace Labb6
     /// </summary>
     public partial class MainWindow : Window
     {
+        public enum TextBlocks { Event, Bartender, Waitress, Patron}
         public MainWindow()
         {
             InitializeComponent();
+            LogEvent("asdffdsfdasasdf", TextBlocks.Event);
+            Bar bar = new Bar(this);
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Guests_Click(object sender, RoutedEventArgs e) { }
-        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e) { }
+        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e) 
+        {
+            //EventTextBlock.Text += "lkadfklfad";
+        }
         private void Panic_Click(object sender, RoutedEventArgs e) { }
+
+        public void LogEvent(string text, TextBlocks textblock)
+        {
+            switch (textblock)
+            {
+                case TextBlocks.Event:
+                    this.Dispatcher.Invoke(() => EventTextBlock.Text += text);
+                    break;
+                case TextBlocks.Bartender:
+                    this.Dispatcher.Invoke(() => BartenderTextBlock.Text += text);
+                    break;
+                case TextBlocks.Patron:
+                    this.Dispatcher.Invoke(() => PatronTextBlock.Text += text);
+                    break;
+                case TextBlocks.Waitress:
+                    this.Dispatcher.Invoke(() => WaitressTextBlock.Text += text);
+                    break;
+            }
+        }
     }
-
-    delegate void BartenderGetGlass();
-    delegate void BartenderPourBeer();
-    delegate void BartenderGoHome();
-    delegate void WaitressCollectGlasses();
-    delegate void WaitressWashGlasses();
-    delegate void WaitressPlaceGlasses();
-    delegate void BouncerGoHome();
-    delegate void PatronArrive(Patron patron);
-    delegate void PatronSitDown(Patron patron);
-    delegate void PatronFinishBeer(Patron patron);
-    delegate void PatronLeave(Patron patron);
-
-    delegate void AddPatron(Patron patron);
 
     class Bar
     {
-        public bool Open { get; set; }
-        public BlockingCollection<int> Shelf { get; set; }
-        public BlockingCollection<int> Chairs { get; set; }
+        public bool IsOpen { get; set; }
+        public MainWindow mainWindow;
         public ConcurrentQueue<Patron> Patrons { get; set; }
         private Bartender bartender;
         private Waitress waitress;
         private Bouncer bouncer;
+        public ConcurrentStack<Glass> Shelf { get; set; }
+        public ConcurrentStack<Glass> Table { get; set; }
+        public List<Patron> Chairs { get; set; }
+        public int NumberOfChairs;
 
-        AddPatron addPatron;
-
-        public Bar()
+        public Bar(MainWindow mainWindow)
         {
-            Shelf = new BlockingCollection<int>();
-            Chairs = new BlockingCollection<int>();
+            this.mainWindow = mainWindow;
+            IsOpen = true;
+            InitShelf(5);
+            Table = new ConcurrentStack<Glass>();
             Patrons = new ConcurrentQueue<Patron>();
-            bartender = new Bartender();
-            waitress = new Waitress();
-            bouncer = new Bouncer(addPatron);
+            Chairs = new List<Patron>();
+            NumberOfChairs = 5;
 
-            addPatron += DoAddPatron;
+            bouncer = new Bouncer(this);
+            bartender = new Bartender(this);
+            waitress = new Waitress(this);
         }
 
-        void DoAddPatron(Patron patron)
+        public void Log(string text)
         {
-            Patrons.Enqueue(patron);
+            mainWindow.Dispatcher.Invoke(() => mainWindow.EventTextBlock.Text.Insert(0, text));
         }
 
-        public void NextPatron()
+        public void InitShelf(int numberOfGlasses)
         {
-            Patrons.TryDequeue(out Patron patron);
-            //if (patron != default)
-                //PatronServed(patron);
+            Shelf = new ConcurrentStack<Glass>();
+            for (int i = 0; i < numberOfGlasses; i++)
+            {
+                Shelf.Push(new Glass());
+            }
+        }
+    }
+
+    public class Glass { }
+
+    class Bouncer
+    {
+        public Bouncer(Bar bar)
+        {
+            Task.Run(() =>
+            {
+                while (bar.IsOpen)
+                {
+                    Thread.Sleep(1000);
+                    bar.Patrons.Enqueue(new Patron(bar));
+                    System.Console.WriteLine("Bouncer: let in patron");
+                }
+            });
         }
     }
 
     class Bartender
     {
-        public event Action GetGlass, PourBeer, GoHome;
-        public Bartender()
+        Bar bar;
+        Glass currentGlass;
+        Patron currentPatron;
+        public Bartender(Bar bar)
         {
-            DoGetGlass();
-            DoPourBeer();
-            DoGoHome();
+            this.bar = bar;
+            Task.Run(() =>
+            {
+                while (bar.IsOpen)
+                {
+                    currentGlass = WaitForGlass();
+                    currentPatron = WaitForPatron();
+                    Thread.Sleep(3000);
+                    currentPatron.Serve(currentGlass);
+                }
+            });
         }
-        public void DoGetGlass() { GetGlass(); }
-        public void DoPourBeer() { PourBeer();  }
-        public void DoGoHome() { GoHome(); }
+
+        Glass WaitForGlass()
+        {
+            bool gotGlass = false;
+            while(!gotGlass)
+            {
+                if (bar.Shelf.TryPop(out Glass glass))
+                {
+                    Console.WriteLine("Bartender: got glass");
+                    Console.WriteLine("Shelf count: "+bar.Shelf.Count);
+                    Thread.Sleep(3000);
+                    return glass;
+                }
+            }
+            return default;
+        }
+        Patron WaitForPatron()
+        {
+            bool foundPerson = false;
+            while(!foundPerson)
+            {
+                if (bar.Patrons.TryDequeue(out Patron patron))
+                {
+                    Console.WriteLine("Bartender: got patron");
+                    Console.WriteLine("Patron count: "+bar.Patrons.Count);
+                    return patron;
+                }
+            }
+            return default;
+        }
     }
 
     class Waitress
     {
-        public event Action CollectGlasses, WashGlasses, PlaceGlasses;
-        public Waitress() => Task.Run(() =>
+        Bar bar;
+        Glass currentGlass;
+        public Waitress(Bar bar)
+        {
+            this.bar = bar;
+            Task.Run(() =>
             {
-                DoCollectGlasses();
-                DoWashGlasses();
-                DoPlaceGlasses();
+                while (bar.IsOpen)
+                {
+                    Thread.Sleep(1000);
+                    currentGlass = CheckForGlass();
+                    Thread.Sleep(1000);
+                    PlaceGlass();
+                }
             });
+        }
 
-        public void DoCollectGlasses() { CollectGlasses(); }
-        public void DoWashGlasses() { WashGlasses(); }
-        public void DoPlaceGlasses() { PlaceGlasses(); }
-    }
-        
-    class Bouncer
-    {
-        public Bouncer(AddPatron addPatron) => Task.Run(() =>
+        private void PlaceGlass()
+        {
+            bar.Shelf.Push(currentGlass);
+            Console.WriteLine("Waitress: Placed glass");
+            Console.WriteLine("Shelf glass count: " + bar.Shelf.Count);
+        }
+
+        private Glass CheckForGlass()
+        {
+            bool foundPerson = false;
+            while (!foundPerson)
             {
-                Thread.Sleep(1000);
-                addPatron(new Patron());
-            });
+                if (bar.Table.TryPop(out Glass currentGlass))
+                {
+                    Console.WriteLine("Waitress: got glass");
+                    Console.WriteLine("Table glass count: " + bar.Table.Count);
+                    return currentGlass;
+                }
+            }
+            return default;
+        }
 
-        public event Action GoHome;
-        public void DoGoHome() { GoHome(); }
+        private void Log(string text)
+        {
+            MainWindow mainWindow = (MainWindow)Application.Current.MainWindow;
+            mainWindow.Dispatcher.Invoke(() =>
+            {
+                mainWindow.WaitressTextBlock.Text += text;
+            });
+        }
     }
 
     class Patron
     {
-        public event Action Arrive, SitDown, FinishBeer, Leave;
-        public Patron() => Task.Run(() =>
+        private Bar bar;
+        public bool Finished;
+        public Patron(Bar bar)
+        {
+            this.bar = bar;
+        }
+        public void Serve(Glass glass)
+        {
+            Finished = false;
+            Task.Run(() =>
             {
-                DoArrive();
-                DoSitDown();
-                DoFinishBeer();
-                DoLeave();
+                CheckForTable();
+                Thread.Sleep(1000);
+                Leave();
+                Thread.Sleep(1000);
             });
-        public void DoArrive() { Arrive(); }
-        public void DoSitDown() { SitDown(); }
-        public void DoFinishBeer() { FinishBeer(); }
-        public void DoLeave() { Leave(); }
+        }
+
+        private void Leave()
+        {
+            lock(bar.Chairs)
+            {
+                bar.Chairs.Remove(this);
+            }
+        }
+
+        private void CheckForTable()
+        {
+            bool foundTable = false;
+            while (!foundTable)
+            {
+                if (bar.Chairs.Count < bar.NumberOfChairs)
+                {
+                    lock(bar.Chairs)
+                    {
+                        bar.Chairs.Add(this);
+                    }
+                    Console.WriteLine("Patron: got chair");
+                    Console.WriteLine("Chair count: " + bar.Chairs.Count);
+                    return;
+                }
+            }
+        }
     }
 }

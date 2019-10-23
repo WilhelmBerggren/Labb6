@@ -11,9 +11,9 @@
             <RowDefinition/>
             <RowDefinition Height="98*"/>
         </Grid.RowDefinitions>
-        <ListBox HorizontalAlignment="Left" Height="100" Margin="9,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
-        <ListBox HorizontalAlignment="Left" Height="100" Margin="114,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
-        <ListBox HorizontalAlignment="Left" Height="100" Margin="219,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <TextBlock Name="BartenderTextBlock" HorizontalAlignment="Left" Height="100" Margin="9,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <TextBlock Name="WaitressTextBlock" HorizontalAlignment="Left" Height="100" Margin="114,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
+        <TextBlock Name="PatronTextBlock" HorizontalAlignment="Left" Height="100" Margin="219,37.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Label Content="Bartender" HorizontalAlignment="Left" Margin="9,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Label Content="Servitris" HorizontalAlignment="Left" Margin="114,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Label Content="Gäster" HorizontalAlignment="Left" Margin="219,6.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
@@ -22,7 +22,7 @@
         <Button Content="Pausa/fortsätt" Name="Pause_Guests" Click="Pause_Guests_Click" HorizontalAlignment="Left" Margin="219,142.333,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Öppna/stäng baren" Name="ToggleBarOpen" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="9,167.333,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
         <Button Content="Panik! (stoppa alla trådar)" Name="Panic" Click="Panic_Click" HorizontalAlignment="Left" Margin="324,142.333,0,0" VerticalAlignment="Top" Width="157" Grid.Row="1"/>
-        <TextBlock HorizontalAlignment="Left" Margin="324,37.333,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="100" Width="157" Grid.Row="1"/>
+        <TextBlock Name="EventTextBlock" HorizontalAlignment="Left" Margin="324,37.333,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="100" Width="157" Grid.Row="1"/>
 
     </Grid>
 </Window>
