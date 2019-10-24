@@ -272,7 +272,7 @@ namespace Labb6
             {
                 bar.Log("Patron enters the bar", LogBox.Patron);
                 Thread.Sleep(bar.PatronArriveTiming);
-                bar.WaitingPatrons.Enqueue(this);
+                bar.WaitingPatrons.Enqueue(this); // Does not display the count of the queue.
                 bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
                 WaitForGlass();
                 WaitForTable();
