@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,19 +14,29 @@ namespace Labb6
     public enum LogBox { Event, Bartender, Waitress, Patron }
     public partial class MainWindow : Window
     {
+        Pub pub;
         public MainWindow()
         {
             InitializeComponent();
-            Pub bar = new Pub(this);
+            pub = new Pub(this);
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Guests_Click(object sender, RoutedEventArgs e) { }
-        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e) { }
-
-
-        private void Panic_Click(object sender, RoutedEventArgs e) { }
+        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
+        {
+            if (pub.IsOpen)
+            {
+                pub.Stop();
+            }
+            else
+            {
+                LogEvent(TestCase.SelectedIndex.ToString(), LogBox.Event);
+                pub.Start();
+            }
+        }
+        private void Panic_Click(object sender, RoutedEventArgs e) { pub.IsOpen = false; }
 
         public void LogEvent(string text, LogBox textblock)
         {
@@ -51,7 +62,7 @@ namespace Labb6
     {
         public bool IsOpen { get; set; }
         public MainWindow mainWindow;
-        
+
         public ConcurrentQueue<Patron> WaitingPatrons { get; set; }
         private Bartender bartender;
         private Waitress waitress;
@@ -101,12 +112,17 @@ namespace Labb6
             this.NumberOfGlasses = NumberOfGlasses;
             this.NumberOfChairs = NumberOfChairs;
 
-            IsOpen = true;
-            InitShelf(NumberOfGlasses);
+            IsOpen = false;
             Table = new ConcurrentStack<Glass>();
             WaitingPatrons = new ConcurrentQueue<Patron>();
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
+            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, NumberOfGlasses).Select(i => new Glass()));
+        }
+
+        public void Start()
+        {
+            IsOpen = true;
             InfoPrinter();
 
             bouncer = new Bouncer(this);
@@ -114,18 +130,14 @@ namespace Labb6
             waitress = new Waitress(this);
         }
 
+        public void Stop()
+        {
+            IsOpen = false;
+        }
+
         public void Log(string text, LogBox listbox)
         {
             mainWindow.LogEvent(text, listbox);
-        }
-
-        public void InitShelf(int numberOfGlasses)
-        {
-            Shelf = new ConcurrentStack<Glass>();
-            for (int i = 0; i < numberOfGlasses; i++)
-            {
-                Shelf.Push(new Glass());
-            }
         }
 
         private void InfoPrinter()
@@ -190,7 +202,7 @@ namespace Labb6
             {
                 if (bar.Shelf.TryPeek(out _))
                 {
-                    bar.Log("Collecting glass...", LogBox.Bartender);                 
+                    bar.Log("Collecting glass...", LogBox.Bartender);
                     Thread.Sleep(bar.BartenderGlassTiming);
                     bar.Shelf.TryPop(out Glass glass);
                     return glass;
@@ -241,7 +253,6 @@ namespace Labb6
                 bar.Log("Goes to collect glasses...", LogBox.Waitress);
                 Thread.Sleep(bar.WaitressClearTiming);
 
-                Console.WriteLine("Waitress: got glasses: " + glasses.Count);
             }
         }
 
@@ -272,7 +283,7 @@ namespace Labb6
             {
                 bar.Log("Patron enters the bar", LogBox.Patron);
                 Thread.Sleep(bar.PatronArriveTiming);
-                bar.WaitingPatrons.Enqueue(this); // Does not display the count of the queue.
+                bar.WaitingPatrons.Enqueue(this);
                 bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
                 WaitForGlass();
                 WaitForTable();
@@ -281,11 +292,11 @@ namespace Labb6
         }
         private void WaitForGlass()
         {
-            while(true)
+            while (true)
             {
-                if(bar.BarDisk.ContainsKey(this))
+                if (bar.BarDisk.ContainsKey(this))
                 {
-                    lock(bar.BarDisk)
+                    lock (bar.BarDisk)
                     {
                         this.glass = bar.BarDisk[this];
                         bar.BarDisk.Remove(this);
