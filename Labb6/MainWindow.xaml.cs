@@ -22,10 +22,9 @@ namespace Labb6
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Guests_Click(object sender, RoutedEventArgs e) { }
-        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
-        {
-            //EventTextBlock.Text += "lkadfklfad";
-        }
+        private void ToggleBarOpen_Click(object sender, RoutedEventArgs e) { }
+
+
         private void Panic_Click(object sender, RoutedEventArgs e) { }
 
         public void LogEvent(string text, LogBox textblock)
@@ -52,7 +51,8 @@ namespace Labb6
     {
         public bool IsOpen { get; set; }
         public MainWindow mainWindow;
-        public ConcurrentQueue<Patron> Patrons { get; set; }
+        
+        public ConcurrentQueue<Patron> WaitingPatrons { get; set; }
         private Bartender bartender;
         private Waitress waitress;
         private Bouncer bouncer;
@@ -104,7 +104,7 @@ namespace Labb6
             IsOpen = true;
             InitShelf(NumberOfGlasses);
             Table = new ConcurrentStack<Glass>();
-            Patrons = new ConcurrentQueue<Patron>();
+            WaitingPatrons = new ConcurrentQueue<Patron>();
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
             InfoPrinter();
@@ -134,7 +134,7 @@ namespace Labb6
             {
                 while (IsOpen)
                 {
-                    Log($"Chairs: {TakenChairs.Count}, Patrons: {Patrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
+                    Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
                     Thread.Sleep(1000);
                 }
             });
@@ -152,8 +152,7 @@ namespace Labb6
                 while (bar.IsOpen)
                 {
                     Thread.Sleep(new Random().Next(bar.BouncerMinTiming, bar.BouncerMaxTiming));
-                    bar.Patrons.Enqueue(new Patron(bar));
-                    System.Console.WriteLine("Bouncer: let in patron");
+                    new Patron(bar);
                 }
             });
         }
@@ -173,7 +172,11 @@ namespace Labb6
                 {
                     currentPatron = WaitForPatron();
                     currentGlass = WaitForGlass();
-                    lock(bar.BarDisk)
+
+                    bar.Log("Pouring beer...", LogBox.Bartender);
+                    Thread.Sleep(bar.BartenderPourTiming);
+
+                    lock (bar.BarDisk)
                     {
                         bar.BarDisk.Add(currentPatron, currentGlass);
                     }
@@ -183,35 +186,26 @@ namespace Labb6
 
         Glass WaitForGlass()
         {
-            bool gotGlass = false;
-            while (!gotGlass)
+            while (true)
             {
-                if (bar.Shelf.TryPop(out Glass glass))
+                if (bar.Shelf.TryPeek(out _))
                 {
+                    bar.Log("Collecting glass...", LogBox.Bartender);                 
                     Thread.Sleep(bar.BartenderGlassTiming);
-                    bar.Log("Got glass", LogBox.Bartender);
-                    //Console.WriteLine("Bartender: got glass");
-                    //Console.WriteLine("Shelf count: "+bar.Shelf.Count);
+                    bar.Shelf.TryPop(out Glass glass);
                     return glass;
                 }
             }
-            return default;
         }
         Patron WaitForPatron()
         {
-            bool foundPerson = false;
-            while (!foundPerson)
+            while (true)
             {
-                if (bar.Patrons.TryDequeue(out Patron patron))
+                if (bar.WaitingPatrons.TryDequeue(out Patron patron))
                 {
-                    bar.Log("Got patron", LogBox.Bartender);
-                    Console.WriteLine("Bartender: got patron");
-                    Thread.Sleep(bar.BartenderPourTiming);
-                    Console.WriteLine("Patron count: " + bar.Patrons.Count);
                     return patron;
                 }
             }
-            return default;
         }
     }
 
@@ -244,8 +238,9 @@ namespace Labb6
             }
             if (glasses.Count != 0)
             {
+                bar.Log("Goes to collect glasses...", LogBox.Waitress);
                 Thread.Sleep(bar.WaitressClearTiming);
-                bar.Log("Took glasses", LogBox.Waitress);
+
                 Console.WriteLine("Waitress: got glasses: " + glasses.Count);
             }
         }
@@ -254,13 +249,13 @@ namespace Labb6
         {
             if (glasses.Count > 0)
             {
+                bar.Log("Does dishes...", LogBox.Waitress);
+                Thread.Sleep(bar.WaitressPlaceTiming);
                 while (glasses.Count > 0)
                 {
                     bar.Shelf.Push(glasses.Pop());
                 }
-                Thread.Sleep(bar.WaitressPlaceTiming);
-                bar.Log("Waitress: Placed glasses", LogBox.Waitress);
-                bar.Log("Shelf glass count: " + bar.Shelf.Count, LogBox.Waitress);
+                bar.Log("Placed clean glasses in shelf...", LogBox.Waitress);
             }
         }
     }
@@ -275,8 +270,10 @@ namespace Labb6
 
             Task.Run(() =>
             {
-                bar.Log("Patron arrived", LogBox.Patron);
+                bar.Log("Patron enters the bar", LogBox.Patron);
                 Thread.Sleep(bar.PatronArriveTiming);
+                bar.WaitingPatrons.Enqueue(this);
+                bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
                 WaitForGlass();
                 WaitForTable();
                 DrinkAndLeave();
@@ -293,7 +290,6 @@ namespace Labb6
                         this.glass = bar.BarDisk[this];
                         bar.BarDisk.Remove(this);
                     }
-                    Thread.Sleep(bar.PatronTableTiming);
                     bar.Log("Got glass", LogBox.Patron);
                     return;
                 }
@@ -307,14 +303,12 @@ namespace Labb6
             {
                 if (bar.TakenChairs.Count < bar.NumberOfChairs)
                 {
+                    Thread.Sleep(bar.PatronTableTiming);
                     lock (bar.TakenChairs)
                     {
                         bar.TakenChairs.Add(this);
                     }
-                    Thread.Sleep(bar.PatronTableTiming);
                     bar.Log("Got chair", LogBox.Patron);
-                    //Console.WriteLine("Patron: got chair");
-                    //Console.WriteLine("Chair count: " + bar.TakenChairs.Count);
                     return;
                 }
             }
