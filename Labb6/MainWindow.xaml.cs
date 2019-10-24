@@ -32,10 +32,11 @@ namespace Labb6
             }
             else
             {
+                LogEvent(TestCase.SelectedIndex.ToString(), LogBox.Event);
                 pub.Start();
             }
         }
-        private void Panic_Click(object sender, RoutedEventArgs e) { }
+        private void Panic_Click(object sender, RoutedEventArgs e) { pub.IsOpen = false; }
 
         public void LogEvent(string text, LogBox textblock)
         {
