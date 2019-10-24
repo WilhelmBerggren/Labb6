@@ -20,7 +20,7 @@
         <Button Content="Pausa/fortsätt" Name="Pause_Bartender" Click="Pause_Bartender_Click" HorizontalAlignment="Left" Margin="114,354,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Pausa/fortsätt" Name="Pause_Waitress" Click="Pause_Waitress_Click" HorizontalAlignment="Left" Margin="220,354,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Pausa/fortsätt" Name="Pause_Guests" Click="Pause_Guests_Click" HorizontalAlignment="Left" Margin="325,354,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
-        <Button Content="Öppna/stäng baren" Name="ToggleBarOpen" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="171,378,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
+        <Button Content="Open the bar" Name="ToggleBarOpen" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="171,378,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
         <Button Content="Panik! (stoppa alla trådar)" Name="Panic" Click="Panic_Click" HorizontalAlignment="Left" Margin="486,378,0,0" VerticalAlignment="Top" Width="157" Grid.Row="1"/>
         <ListBox Name="EventListBox" HorizontalAlignment="Left" Margin="430,37,0,0" VerticalAlignment="Top" Height="310" Width="301" Grid.Row="1"/>
         <ComboBox Name="TestCase" HorizontalAlignment="Left" Margin="46,378,0,0" Grid.Row="1" VerticalAlignment="Top" Width="120" Height="19">

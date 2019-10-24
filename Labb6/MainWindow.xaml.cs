@@ -14,6 +14,7 @@ namespace Labb6
     public enum LogBox { Event, Bartender, Waitress, Patron }
     public partial class MainWindow : Window
     {
+        public ManualResetEvent mre = new ManualResetEvent(true); // starts out in a signaled state, meaning it does not block by default.
         Pub pub;
         public MainWindow()
         {
@@ -21,17 +22,27 @@ namespace Labb6
             pub = new Pub(this);
         }
 
+        private void HandlePauseAndResume(LogBox logbox)
+        {
+
+        }
+
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e) { }
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e) { }
-        private void Pause_Guests_Click(object sender, RoutedEventArgs e) { }
+        private void Pause_Guests_Click(object sender, RoutedEventArgs e)
+        {
+            mre.Reset();
+        }
         private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
         {
             if (pub.IsOpen)
             {
+                ToggleBarOpen.Content = "Open bar";
                 pub.Stop();
             }
             else
             {
+                ToggleBarOpen.Content = "Close bar";
                 LogEvent(TestCase.SelectedIndex.ToString(), LogBox.Event);
                 pub.Start();
             }
@@ -64,9 +75,9 @@ namespace Labb6
         public MainWindow mainWindow;
 
         public ConcurrentQueue<Patron> WaitingPatrons { get; set; }
-        private Bartender bartender;
-        private Waitress waitress;
-        private Bouncer bouncer;
+        private Task bartender;
+        private Task waitress;
+        private Task bouncer;
         public ConcurrentStack<Glass> Shelf { get; set; }
         public Dictionary<Patron, Glass> BarDisk { get; set; }
         public ConcurrentStack<Glass> Table { get; set; }
@@ -125,9 +136,9 @@ namespace Labb6
             IsOpen = true;
             InfoPrinter();
 
-            bouncer = new Bouncer(this);
-            bartender = new Bartender(this);
-            waitress = new Waitress(this);
+            bouncer = Task.Run(() => { new Bouncer(this); });
+            bartender = Task.Run(() => { new Bartender(this); });
+            waitress = Task.Run(() => { new Waitress(this); });
         }
 
         public void Stop()
@@ -159,14 +170,16 @@ namespace Labb6
     {
         public Bouncer(Pub bar)
         {
-            Task.Run(() =>
+
+            while (bar.IsOpen)
             {
-                while (bar.IsOpen)
+                Thread.Sleep(new Random().Next(bar.BouncerMinTiming, bar.BouncerMaxTiming));
+                Task.Run(() =>
                 {
-                    Thread.Sleep(new Random().Next(bar.BouncerMinTiming, bar.BouncerMaxTiming));
                     new Patron(bar);
-                }
-            });
+                });
+            }
+
         }
     }
 
@@ -178,22 +191,31 @@ namespace Labb6
         public Bartender(Pub bar)
         {
             this.bar = bar;
-            Task.Run(() =>
+
+            while (bar.IsOpen)
             {
-                while (bar.IsOpen)
+                currentPatron = WaitForPatron();
+                currentGlass = WaitForGlass();
+
+                bar.Log("Pouring beer...", LogBox.Bartender);
+                Thread.Sleep(bar.BartenderPourTiming);
+
+                lock (bar.BarDisk)
                 {
-                    currentPatron = WaitForPatron();
-                    currentGlass = WaitForGlass();
-
-                    bar.Log("Pouring beer...", LogBox.Bartender);
-                    Thread.Sleep(bar.BartenderPourTiming);
-
-                    lock (bar.BarDisk)
-                    {
-                        bar.BarDisk.Add(currentPatron, currentGlass);
-                    }
+                    bar.BarDisk.Add(currentPatron, currentGlass);
                 }
-            });
+            }
+
+        }
+        Patron WaitForPatron()
+        {
+            while (true)
+            {
+                if (bar.WaitingPatrons.TryDequeue(out Patron patron))
+                {
+                    return patron;
+                }
+            }
         }
 
         Glass WaitForGlass()
@@ -209,16 +231,6 @@ namespace Labb6
                 }
             }
         }
-        Patron WaitForPatron()
-        {
-            while (true)
-            {
-                if (bar.WaitingPatrons.TryDequeue(out Patron patron))
-                {
-                    return patron;
-                }
-            }
-        }
     }
 
     public class Waitress
@@ -229,14 +241,13 @@ namespace Labb6
         {
             glasses = new Stack<Glass>();
             this.bar = bar;
-            Task.Run(() =>
+
+            while (bar.IsOpen)
             {
-                while (bar.IsOpen)
-                {
-                    TakeEmptyGlasses();
-                    PlaceGlass();
-                }
-            });
+                TakeEmptyGlasses();
+                PlaceGlass();
+            }
+
         }
 
         private void TakeEmptyGlasses()
@@ -279,16 +290,14 @@ namespace Labb6
         {
             this.bar = bar;
 
-            Task.Run(() =>
-            {
-                bar.Log("Patron enters the bar", LogBox.Patron);
-                Thread.Sleep(bar.PatronArriveTiming);
-                bar.WaitingPatrons.Enqueue(this);
-                bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
-                WaitForGlass();
-                WaitForTable();
-                DrinkAndLeave();
-            });
+            bar.Log("Patron enters the bar", LogBox.Patron);
+            Thread.Sleep(bar.PatronArriveTiming);
+            bar.WaitingPatrons.Enqueue(this);
+            bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
+            WaitForGlass();
+            WaitForTable();
+            DrinkAndLeave();
+
         }
         private void WaitForGlass()
         {
