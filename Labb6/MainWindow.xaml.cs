@@ -14,7 +14,9 @@ namespace Labb6
     public enum LogBox { Event, Bartender, Waitress, Patron }
     public partial class MainWindow : Window
     {
-        public ManualResetEvent mre = new ManualResetEvent(true); // starts out in a signaled state, meaning it does not block by default.
+        public ManualResetEvent pauseBouncerAndPatrons = new ManualResetEvent(true); // starts out in a signaled state, meaning it does not block by default.
+        public ManualResetEvent pauseBartender = new ManualResetEvent(true); 
+        public ManualResetEvent pauseWaitress = new ManualResetEvent(true); 
         Pub pub;
         public MainWindow()
         {
@@ -27,11 +29,44 @@ namespace Labb6
 
         }
 
-        private void Pause_Bartender_Click(object sender, RoutedEventArgs e) { }
-        private void Pause_Waitress_Click(object sender, RoutedEventArgs e) { }
+        private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
+        {
+            if (Pause_Bartender.Content.ToString() == "Pause")
+            {
+                pauseBartender.Reset();
+                Pause_Bartender.Content = "Resume";
+            }
+            else
+            {
+                pauseBartender.Set();
+                Pause_Bartender.Content = "Pause";
+            }
+        }
+        private void Pause_Waitress_Click(object sender, RoutedEventArgs e)
+        {
+            if (Pause_Waitress.Content.ToString() == "Pause")
+            {
+                pauseWaitress.Reset();
+                Pause_Waitress.Content = "Resume";
+            }
+            else
+            {
+                pauseWaitress.Set();
+                Pause_Waitress.Content = "Pause";
+            }
+        }
         private void Pause_Guests_Click(object sender, RoutedEventArgs e)
         {
-            mre.Reset();
+            if (Pause_Guests.Content.ToString() == "Pause")
+            {
+                pauseBouncerAndPatrons.Reset();
+                Pause_Guests.Content = "Resume";
+            }
+            else
+            {
+                pauseBouncerAndPatrons.Set();
+                Pause_Guests.Content = "Pause";
+            }
         }
         private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
         {
@@ -47,7 +82,26 @@ namespace Labb6
                 pub.Start();
             }
         }
-        private void Panic_Click(object sender, RoutedEventArgs e) { pub.IsOpen = false; }
+        
+        // Medveten om att den kanske bör "stoppa" alla trådar perma och inte pausa,
+        // men detta kan funka tills det är löst.
+        private void Panic_Click(object sender, RoutedEventArgs e)
+        {
+            if (Panic.Content.ToString() == "Panic! Pause all threads!")
+            {
+                pauseBouncerAndPatrons.Reset();
+                pauseBartender.Reset();
+                pauseWaitress.Reset();
+                Panic.Content = "Phew! Crysis averted... :-)";
+            }
+            else
+            {
+                pauseBouncerAndPatrons.Set();
+                pauseBartender.Set();
+                pauseWaitress.Set();
+                Panic.Content = "Panic! Pause all threads!";
+            }
+        }
 
         public void LogEvent(string text, LogBox textblock)
         {
@@ -136,9 +190,21 @@ namespace Labb6
             IsOpen = true;
             InfoPrinter();
 
-            bouncer = Task.Run(() => { new Bouncer(this); });
-            bartender = Task.Run(() => { new Bartender(this); });
-            waitress = Task.Run(() => { new Waitress(this); });
+            bouncer = Task.Run(() => 
+            {
+                new Bouncer(this);
+            });
+
+            bartender = Task.Run(() =>
+            {
+                new Bartender(this);
+            });
+
+
+            waitress = Task.Run(() => 
+            {
+                new Waitress(this);
+            });
         }
 
         public void Stop()
@@ -173,9 +239,13 @@ namespace Labb6
 
             while (bar.IsOpen)
             {
+                // Ligger här för att också stoppa denna task för att köra om och om igen, och sedan spotta ut en jäkla massa patrons
+                bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
                 Thread.Sleep(new Random().Next(bar.BouncerMinTiming, bar.BouncerMaxTiming));
                 Task.Run(() =>
                 {
+                    // Ligger här för att stoppa denna tasken att skapa en ny patron hela tiden
+                    bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
                     new Patron(bar);
                 });
             }
@@ -190,12 +260,16 @@ namespace Labb6
         Patron currentPatron;
         public Bartender(Pub bar)
         {
+
             this.bar = bar;
 
             while (bar.IsOpen)
             {
+                bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
                 currentPatron = WaitForPatron();
                 currentGlass = WaitForGlass();
+                bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
 
                 bar.Log("Pouring beer...", LogBox.Bartender);
                 Thread.Sleep(bar.BartenderPourTiming);
@@ -205,12 +279,13 @@ namespace Labb6
                     bar.BarDisk.Add(currentPatron, currentGlass);
                 }
             }
-
         }
         Patron WaitForPatron()
         {
             while (true)
             {
+                bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
                 if (bar.WaitingPatrons.TryDequeue(out Patron patron))
                 {
                     return patron;
@@ -218,14 +293,19 @@ namespace Labb6
             }
         }
 
-        Glass WaitForGlass()
+        Glass  WaitForGlass()
         {
             while (true)
             {
+
                 if (bar.Shelf.TryPeek(out _))
                 {
+                    bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
                     bar.Log("Collecting glass...", LogBox.Bartender);
                     Thread.Sleep(bar.BartenderGlassTiming);
+                    bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
                     bar.Shelf.TryPop(out Glass glass);
                     return glass;
                 }
@@ -244,6 +324,8 @@ namespace Labb6
 
             while (bar.IsOpen)
             {
+                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+
                 TakeEmptyGlasses();
                 PlaceGlass();
             }
@@ -254,6 +336,8 @@ namespace Labb6
         {
             while (!bar.Table.IsEmpty)
             {
+                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+
                 if (bar.Table.TryPop(out Glass currentGlass))
                 {
                     glasses.Push(currentGlass);
@@ -261,6 +345,8 @@ namespace Labb6
             }
             if (glasses.Count != 0)
             {
+                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+
                 bar.Log("Goes to collect glasses...", LogBox.Waitress);
                 Thread.Sleep(bar.WaitressClearTiming);
 
@@ -271,10 +357,14 @@ namespace Labb6
         {
             if (glasses.Count > 0)
             {
+                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+
                 bar.Log("Does dishes...", LogBox.Waitress);
                 Thread.Sleep(bar.WaitressPlaceTiming);
                 while (glasses.Count > 0)
                 {
+                    bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+
                     bar.Shelf.Push(glasses.Pop());
                 }
                 bar.Log("Placed clean glasses in shelf...", LogBox.Waitress);
@@ -303,6 +393,8 @@ namespace Labb6
         {
             while (true)
             {
+                bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
                 if (bar.BarDisk.ContainsKey(this))
                 {
                     lock (bar.BarDisk)
@@ -321,13 +413,18 @@ namespace Labb6
             bool foundTable = false;
             while (!foundTable)
             {
+
                 if (bar.TakenChairs.Count < bar.NumberOfChairs)
                 {
+                    bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
                     Thread.Sleep(bar.PatronTableTiming);
                     lock (bar.TakenChairs)
                     {
                         bar.TakenChairs.Add(this);
                     }
+                    bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
                     bar.Log("Got chair", LogBox.Patron);
                     return;
                 }
@@ -336,9 +433,13 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
+            bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
             Thread.Sleep(new Random().Next(bar.PatronMinDrinkTiming, bar.PatronMaxDrinkTiming));
             lock (bar.TakenChairs)
             {
+                bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
                 bar.TakenChairs.Remove(this);
                 bar.Table.Push(glass);
                 bar.Log("Patron left", LogBox.Patron);
