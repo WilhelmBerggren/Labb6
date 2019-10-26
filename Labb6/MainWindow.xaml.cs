@@ -12,94 +12,122 @@ namespace Labb6
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public enum LogBox { Event, Bartender, Waitress, Patron }
+    public enum SetBarState { WantsToOpen, WantsToClose }
     public partial class MainWindow : Window
     {
-        public ManualResetEvent pauseBouncerAndPatrons = new ManualResetEvent(true); // starts out in a signaled state, meaning it does not block by default.
-        public ManualResetEvent pauseBartender = new ManualResetEvent(true); 
-        public ManualResetEvent pauseWaitress = new ManualResetEvent(true); 
-        Pub pub;
+        public ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
+        public ManualResetEvent pauseBartender;
+        public ManualResetEvent pauseWaitress;
+        private Pub pub;
+
         public MainWindow()
         {
             InitializeComponent();
+            pauseBouncerAndPatrons = new ManualResetEvent(true);
+            pauseBartender = new ManualResetEvent(true);
+            pauseWaitress = new ManualResetEvent(true);
+
             pub = new Pub(this);
-        }
-
-        private void HandlePauseAndResume(LogBox logbox)
-        {
-
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
         {
-            if (Pause_Bartender.Content.ToString() == "Pause")
+            if (Pause_BartenderButton.Content.ToString() == "Pause")
             {
                 pauseBartender.Reset();
-                Pause_Bartender.Content = "Resume";
+                Pause_BartenderButton.Content = "Resume";
             }
             else
             {
                 pauseBartender.Set();
-                Pause_Bartender.Content = "Pause";
+                Pause_BartenderButton.Content = "Pause";
             }
         }
+
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e)
         {
-            if (Pause_Waitress.Content.ToString() == "Pause")
+            if (Pause_WaitressButton.Content.ToString() == "Pause")
             {
                 pauseWaitress.Reset();
-                Pause_Waitress.Content = "Resume";
+                Pause_WaitressButton.Content = "Resume";
             }
             else
             {
                 pauseWaitress.Set();
-                Pause_Waitress.Content = "Pause";
+                Pause_WaitressButton.Content = "Pause";
             }
         }
         private void Pause_Guests_Click(object sender, RoutedEventArgs e)
         {
-            if (Pause_Guests.Content.ToString() == "Pause")
+            if (Pause_GuestsButton.Content.ToString() == "Pause")
             {
                 pauseBouncerAndPatrons.Reset();
-                Pause_Guests.Content = "Resume";
+                Pause_GuestsButton.Content = "Resume";
             }
             else
             {
                 pauseBouncerAndPatrons.Set();
-                Pause_Guests.Content = "Pause";
+                Pause_GuestsButton.Content = "Pause";
             }
         }
         private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
         {
+            // When instantiated, IsOpen's default value is false.
             if (pub.IsOpen)
             {
-                ToggleBarOpen.Content = "Open bar";
-                pub.Stop();
+                pub.CloseTheBar();
+                OpenOrCloseBar(SetBarState.WantsToClose);
+                ToggleBarOpenButton.Content = "Open bar";
             }
             else
             {
-                ToggleBarOpen.Content = "Close bar";
-                LogEvent(TestCase.SelectedIndex.ToString(), LogBox.Event);
-                pub.Start();
+                pub.OpenTheBar();
+                OpenOrCloseBar(SetBarState.WantsToOpen);
+                ToggleBarOpenButton.Content = "Close bar";
+                LogEvent("TestCase: "+TestCase.SelectedValue.ToString().Substring(38), LogBox.Event);
             }
         }
         
-        // Medveten om att den kanske bör "stoppa" alla trådar perma och inte pausa,
-        // men detta kan funka tills det är löst.
-        private void Panic_Click(object sender, RoutedEventArgs e)
+
+        private void OpenOrCloseBar(SetBarState desiredState)
         {
-            if (Panic.Content.ToString() == "Panic! Pause all threads!")
+            if (desiredState == SetBarState.WantsToClose)
             {
                 pauseBouncerAndPatrons.Reset();
                 pauseBartender.Reset();
                 pauseWaitress.Reset();
-                Panic.Content = "Phew! Crysis averted... :-)";
+                Pause_GuestsButton.IsEnabled = false;
+                Pause_BartenderButton.IsEnabled = false;
+                Pause_WaitressButton.IsEnabled = false;
+                PanicButton.IsEnabled = false;
+                TestCase.IsEnabled = true;
             }
             else
             {
                 pauseBouncerAndPatrons.Set();
                 pauseBartender.Set();
                 pauseWaitress.Set();
-                Panic.Content = "Panic! Pause all threads!";
+                Pause_GuestsButton.IsEnabled = true;
+                Pause_BartenderButton.IsEnabled = true;
+                Pause_WaitressButton.IsEnabled = true;
+                PanicButton.IsEnabled = true;
+                TestCase.IsEnabled = false;
+            }
+        }
+
+        // Medveten om att den kanske bör "stoppa" alla trådar perma och inte pausa,
+        // men detta kan funka tills det är löst.
+        private void Panic_Click(object sender, RoutedEventArgs e)
+        {
+            if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
+            {
+                OpenOrCloseBar(SetBarState.WantsToClose);
+                PanicButton.Content = "Phew! Crysis averted... :-)";
+            }
+            else
+            {
+                OpenOrCloseBar(SetBarState.WantsToOpen);
+                PanicButton.Content = "Panic! Pause all threads!";
             }
         }
 
@@ -125,7 +153,7 @@ namespace Labb6
 
     public class Pub
     {
-        public bool IsOpen { get; set; }
+        public bool IsOpen { get; set; } = false;
         public MainWindow mainWindow;
 
         public ConcurrentQueue<Patron> WaitingPatrons { get; set; }
@@ -185,7 +213,7 @@ namespace Labb6
             Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, NumberOfGlasses).Select(i => new Glass()));
         }
 
-        public void Start()
+        public void OpenTheBar()
         {
             IsOpen = true;
             InfoPrinter();
@@ -207,7 +235,7 @@ namespace Labb6
             });
         }
 
-        public void Stop()
+        public void CloseTheBar()
         {
             IsOpen = false;
         }
@@ -376,11 +404,18 @@ namespace Labb6
     {
         private Pub bar;
         private Glass glass;
+        private string patronName;
+        private string[] nameArray;
         public Patron(Pub bar)
         {
             this.bar = bar;
+            nameArray = new string[25] { "James", "Mary", "John", "Patricia", "Robert",
+                "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara",
+                "Richard", "Susan","Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen",
+                "Christopher", "Nancy", "Daniel", "Margaret", "Lisa"};
+            SetName();
 
-            bar.Log("Patron enters the bar", LogBox.Patron);
+            PrintPatronInfo();
             Thread.Sleep(bar.PatronArriveTiming);
             bar.WaitingPatrons.Enqueue(this);
             bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
@@ -389,6 +424,25 @@ namespace Labb6
             DrinkAndLeave();
 
         }
+
+        private void PrintPatronInfo()
+        {
+            if (this.patronName == "Karen")
+            {
+                bar.Log($"{patronName} enters the bar \n" +
+                    "She wants to speak to the manager!", LogBox.Patron);
+            }
+            else
+            {
+                bar.Log($"{patronName} enters the bar", LogBox.Patron);
+            }
+        }
+        private void SetName()
+        {
+            int selectedName = new Random().Next(0, nameArray.Length);
+            this.patronName = nameArray[selectedName];
+        }
+
         private void WaitForGlass()
         {
             while (true)
@@ -402,7 +456,7 @@ namespace Labb6
                         this.glass = bar.BarDisk[this];
                         bar.BarDisk.Remove(this);
                     }
-                    bar.Log("Got glass", LogBox.Patron);
+                    bar.Log($"{patronName} got a glass", LogBox.Patron);
                     return;
                 }
             }
@@ -425,7 +479,7 @@ namespace Labb6
                     }
                     bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                    bar.Log("Got chair", LogBox.Patron);
+                    bar.Log($"{patronName} found a chair", LogBox.Patron);
                     return;
                 }
             }
@@ -442,7 +496,7 @@ namespace Labb6
 
                 bar.TakenChairs.Remove(this);
                 bar.Table.Push(glass);
-                bar.Log("Patron left", LogBox.Patron);
+                bar.Log($"{patronName} left", LogBox.Patron);
             }
         }
     }
