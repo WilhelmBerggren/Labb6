@@ -15,11 +15,11 @@ namespace Labb6
     public enum SetBarState { WantsToOpen, WantsToClose }
     public partial class MainWindow : Window
     {
-        public ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
-        public ManualResetEvent pauseBartender;
-        public ManualResetEvent pauseWaitress;
-        public CancellationTokenSource tokenSource;
-        public CancellationToken token;
+        internal ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
+        internal ManualResetEvent pauseBartender;
+        internal ManualResetEvent pauseWaitress;
+        internal CancellationTokenSource tokenSource;
+        internal CancellationToken token;
 
         private bool SelectionIsMade = false;
 
@@ -179,7 +179,7 @@ namespace Labb6
             if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
             {
                 OpenOrCloseBar(SetBarState.WantsToClose);
-                PanicButton.Content = "Phew! Crysis averted... :-)";
+                PanicButton.Content = "Phew! Crisis averted... :-)";
             }
             else
             {
@@ -211,16 +211,16 @@ namespace Labb6
     public class Pub
     {
         public bool IsOpen { get; set; } = false;
-        public MainWindow mainWindow;
+        internal MainWindow mainWindow;
 
-        public ConcurrentQueue<Patron> WaitingPatrons { get; set; }
+        internal ConcurrentQueue<Patron> WaitingPatrons { get; set; }
         private Bartender bartender;
         private Waitress waitress;
         private Bouncer bouncer;
-        public ConcurrentStack<Glass> Shelf { get; set; }
-        public Dictionary<Patron, Glass> BarDisk { get; set; }
-        public ConcurrentStack<Glass> Table { get; set; }
-        public List<Patron> TakenChairs { get; set; }
+        internal ConcurrentStack<Glass> Shelf { get; set; }
+        internal Dictionary<Patron, Glass> BarDisk { get; set; }
+        internal ConcurrentStack<Glass> Table { get; set; }
+        internal List<Patron> TakenChairs { get; set; }
         public int BartenderGlassTiming { get; }
         public int BartenderPourTiming { get; }
         public int WaitressClearTiming { get; }
@@ -292,15 +292,24 @@ namespace Labb6
 
         private void InfoPrinter()
         {
-            Task.Run(() =>
+            RunAsTask(() =>
+            {
+                mainWindow.token.ThrowIfCancellationRequested();
+                Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
+                Thread.Sleep(1000);
+            });
+        }
+
+        public void RunAsTask(Action action)
+        {
+            Task.Run(() => 
             {
                 try
                 {
-                    while (IsOpen)
+                    while (this.IsOpen)
                     {
-                        mainWindow.token.ThrowIfCancellationRequested();
-                        Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
-                        Thread.Sleep(1000);
+                        this.mainWindow.token.ThrowIfCancellationRequested();
+                        action();
                     }
                 }
                 catch (OperationCanceledException) { }
@@ -310,73 +319,69 @@ namespace Labb6
 
     public class Glass { }
 
+    public abstract class Agent
+    {
+        public static void Run(Pub pub, Action Loop)
+        {
+            pub.RunAsTask(() =>
+            {
+                // Ligger här för att också stoppa denna task för att köra om och om igen, och sedan spotta ut en jäkla massa patrons
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                Loop();
+            });
+        }
+    }
+
     public class Bouncer
     {
-        public Bouncer(Pub bar)
+        public Bouncer(Pub pub)
         {
-            Task.Run(() =>
+            pub.RunAsTask(() =>
             {
-                try
+                Thread.Sleep(new Random().Next(pub.BouncerMinTiming, pub.BouncerMaxTiming));
+                Task.Run(() =>
                 {
-                    while (bar.IsOpen)
-                    {
-                        bar.mainWindow.token.ThrowIfCancellationRequested();
-                        // Ligger här för att också stoppa denna task för att köra om och om igen, och sedan spotta ut en jäkla massa patrons
-                        bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-                        Thread.Sleep(new Random().Next(bar.BouncerMinTiming, bar.BouncerMaxTiming));
-                        Task.Run(() =>
-                        {
-                            // Ligger här för att stoppa denna tasken att skapa en ny patron hela tiden
-                            bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-                            new Patron(bar);
-                        }, bar.mainWindow.token);
-                    }
-                }
-                catch (OperationCanceledException) { }
-            }, bar.mainWindow.token);
+                    // Ligger här för att stoppa denna tasken att skapa en ny patron hela tiden
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                    _ = new Patron(pub);
+                }, pub.mainWindow.token);
+            });
         }
     }
 
     public class Bartender
     {
-        Pub bar;
+        Pub pub;
         Glass currentGlass;
         Patron currentPatron;
-        public Bartender(Pub bar)
+        public Bartender(Pub pub)
         {
-            this.bar = bar;
-            Task.Run(() =>
+            this.pub = pub;
+            pub.RunAsTask(() =>
             {
-                try
+                pub.mainWindow.token.ThrowIfCancellationRequested();
+                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
+                currentPatron = WaitForPatron();
+                currentGlass = WaitForGlass();
+                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+
+                pub.Log("Pouring beer...", LogBox.Bartender);
+                Thread.Sleep(pub.BartenderPourTiming);
+
+                lock (pub.BarDisk)
                 {
-                    while (bar.IsOpen)
-                    {
-                        bar.mainWindow.token.ThrowIfCancellationRequested();
-                        bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
-
-                        currentPatron = WaitForPatron();
-                        currentGlass = WaitForGlass();
-                        bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
-
-                        bar.Log("Pouring beer...", LogBox.Bartender);
-                        Thread.Sleep(bar.BartenderPourTiming);
-
-                        lock (bar.BarDisk)
-                        {
-                            bar.BarDisk.Add(currentPatron, currentGlass);
-                        }
-                    }
+                    pub.BarDisk.Add(currentPatron, currentGlass);
                 }
-                catch (OperationCanceledException) { }
-            }, bar.mainWindow.token);
+            });
         }
         Patron WaitForPatron()
         {
             while (true)
             {
-                bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
 
-                if (bar.WaitingPatrons.TryDequeue(out Patron patron))
+                if (pub.WaitingPatrons.TryDequeue(out Patron patron))
                 {
                     return patron;
                 }
@@ -387,15 +392,15 @@ namespace Labb6
         {
             while (true)
             {
-                bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
-                if (bar.Shelf.TryPeek(out _))
+                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                if (pub.Shelf.TryPeek(out _))
                 {
 
-                    bar.Log("Collecting glass...", LogBox.Bartender);
-                    Thread.Sleep(bar.BartenderGlassTiming);
-                    bar.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                    pub.Log("Collecting glass...", LogBox.Bartender);
+                    Thread.Sleep(pub.BartenderGlassTiming);
+                    pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
 
-                    bar.Shelf.TryPop(out Glass glass);
+                    pub.Shelf.TryPop(out Glass glass);
                     return glass;
                 }
             }
@@ -404,45 +409,36 @@ namespace Labb6
 
     public class Waitress
     {
-        Pub bar;
-        Stack<Glass> glasses;
-        public Waitress(Pub bar)
+        readonly Pub pub;
+        readonly Stack<Glass> glasses;
+        public Waitress(Pub pub)
         {
             glasses = new Stack<Glass>();
-            this.bar = bar;
-            Task.Run(() =>
+            this.pub = pub;
+            pub.RunAsTask(() =>
             {
-                try
-                {
-                    while (bar.IsOpen)
-                    {
-                        bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
-
-                        TakeEmptyGlasses();
-                        PlaceGlass();
-                    }
-                }
-                catch (OperationCanceledException) { }
-            }, bar.mainWindow.token);
+                TakeEmptyGlasses();
+                PlaceGlass();
+            });
         }
 
         private void TakeEmptyGlasses()
         {
-            while (!bar.Table.IsEmpty)
+            while (!pub.Table.IsEmpty)
             {
-                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
 
-                if (bar.Table.TryPop(out Glass currentGlass))
+                if (pub.Table.TryPop(out Glass currentGlass))
                 {
                     glasses.Push(currentGlass);
                 }
             }
             if (glasses.Count != 0)
             {
-                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
 
-                bar.Log("Goes to collect glasses...", LogBox.Waitress);
-                Thread.Sleep(bar.WaitressClearTiming);
+                pub.Log("Goes to collect glasses...", LogBox.Waitress);
+                Thread.Sleep(pub.WaitressClearTiming);
 
             }
         }
@@ -451,30 +447,30 @@ namespace Labb6
         {
             if (glasses.Count > 0)
             {
-                bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
 
-                bar.Log("Does dishes...", LogBox.Waitress);
-                Thread.Sleep(bar.WaitressPlaceTiming);
+                pub.Log("Does dishes...", LogBox.Waitress);
+                Thread.Sleep(pub.WaitressPlaceTiming);
                 while (glasses.Count > 0)
                 {
-                    bar.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
+                    pub.mainWindow.pauseWaitress.WaitOne(Timeout.Infinite);
 
-                    bar.Shelf.Push(glasses.Pop());
+                    pub.Shelf.Push(glasses.Pop());
                 }
-                bar.Log("Placed clean glasses in shelf...", LogBox.Waitress);
+                pub.Log("Placed clean glasses in shelf...", LogBox.Waitress);
             }
         }
     }
 
     public class Patron
     {
-        private Pub bar;
+        private Pub pub;
         private Glass glass;
         private string patronName;
         private string[] nameArray;
-        public Patron(Pub bar)
+        public Patron(Pub pub)
         {
-            this.bar = bar;
+            this.pub = pub;
             nameArray = new string[25]
             {
                 "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda","William",
@@ -484,9 +480,9 @@ namespace Labb6
             SetName();
 
             PrintPatronInfo();
-            Thread.Sleep(bar.PatronArriveTiming);
-            bar.WaitingPatrons.Enqueue(this);
-            bar.Log("Number of Waiting Patrons: " + bar.WaitingPatrons.Count, LogBox.Waitress);
+            Thread.Sleep(pub.PatronArriveTiming);
+            pub.WaitingPatrons.Enqueue(this);
+            pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
 
             WaitForGlass();
             WaitForTable();
@@ -497,9 +493,9 @@ namespace Labb6
         private void PrintPatronInfo()
         {
             if (this.patronName == "Karen")
-                bar.Log($"{patronName} enters the bar. She wants to speak to the manager!", LogBox.Patron);
+                pub.Log($"{patronName} enters the pub. She wants to speak to the manager!", LogBox.Patron);
             else
-                bar.Log($"{patronName} enters the bar", LogBox.Patron);
+                pub.Log($"{patronName} enters the pub", LogBox.Patron);
         }
         private void SetName()
         {
@@ -513,17 +509,17 @@ namespace Labb6
             {
                 while (true)
                 {
-                    bar.mainWindow.token.ThrowIfCancellationRequested();
-                    bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                    pub.mainWindow.token.ThrowIfCancellationRequested();
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                    if (bar.BarDisk.ContainsKey(this))
+                    if (pub.BarDisk.ContainsKey(this))
                     {
-                        lock (bar.BarDisk)
+                        lock (pub.BarDisk)
                         {
-                            this.glass = bar.BarDisk[this];
-                            bar.BarDisk.Remove(this);
+                            this.glass = pub.BarDisk[this];
+                            pub.BarDisk.Remove(this);
                         }
-                        bar.Log($"{patronName} got a glass", LogBox.Patron);
+                        pub.Log($"{patronName} got a glass", LogBox.Patron);
                         return;
                     }
                 }
@@ -538,20 +534,20 @@ namespace Labb6
             {
                 while (!foundTable)
                 {
-                    bar.mainWindow.token.ThrowIfCancellationRequested();
+                    pub.mainWindow.token.ThrowIfCancellationRequested();
 
-                    if (bar.TakenChairs.Count < bar.NumberOfChairs)
+                    if (pub.TakenChairs.Count < pub.NumberOfChairs)
                     {
-                        bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                        pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                        Thread.Sleep(bar.PatronTableTiming);
-                        lock (bar.TakenChairs)
+                        Thread.Sleep(pub.PatronTableTiming);
+                        lock (pub.TakenChairs)
                         {
-                            bar.TakenChairs.Add(this);
+                            pub.TakenChairs.Add(this);
                         }
-                        bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                        pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                        bar.Log($"{patronName} found a chair", LogBox.Patron);
+                        pub.Log($"{patronName} found a chair", LogBox.Patron);
                         return;
                     }
                 }
@@ -561,16 +557,16 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
-            bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+            pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-            Thread.Sleep(new Random().Next(bar.PatronMinDrinkTiming, bar.PatronMaxDrinkTiming));
-            lock (bar.TakenChairs)
+            Thread.Sleep(new Random().Next(pub.PatronMinDrinkTiming, pub.PatronMaxDrinkTiming));
+            lock (pub.TakenChairs)
             {
-                bar.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                bar.TakenChairs.Remove(this);
-                bar.Table.Push(glass);
-                bar.Log($"{patronName} left", LogBox.Patron);
+                pub.TakenChairs.Remove(this);
+                pub.Table.Push(glass);
+                pub.Log($"{patronName} left", LogBox.Patron);
             }
         }
     }
