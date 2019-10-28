@@ -8,6 +8,7 @@ namespace Labb6
     {
         readonly Pub pub;
         readonly Stack<Glass> glasses;
+
         public Waitress(Pub pub)
         {
             glasses = new Stack<Glass>();

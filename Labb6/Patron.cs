@@ -4,7 +4,6 @@ using System.Threading;
 
 namespace Labb6
 {
-
     static class Name {
         private static string[] nameArray = new string[25]
         {
@@ -23,6 +22,7 @@ namespace Labb6
         private Pub pub;
         private Glass glass;
         private string patronName;
+
         public Patron(Pub pub)
         {
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
@@ -48,54 +48,48 @@ namespace Labb6
 
         private void WaitForGlass()
         {
-            try
+            pub.RunAsTask(() =>
             {
-                while (true)
-                {
-                    pub.mainWindow.token.ThrowIfCancellationRequested();
-                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                pub.mainWindow.token.ThrowIfCancellationRequested();
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                    if (pub.BarDisk.ContainsKey(this))
+                if (pub.BarDisk.ContainsKey(this))
+                {
+                    lock (pub.BarDisk)
                     {
-                        lock (pub.BarDisk)
-                        {
-                            this.glass = pub.BarDisk[this];
-                            pub.BarDisk.Remove(this);
-                        }
-                        pub.Log($"{patronName} got a glass", LogBox.Patron);
-                        return;
+                        this.glass = pub.BarDisk[this];
+                        pub.BarDisk.Remove(this);
                     }
+                    pub.Log($"{patronName} got a glass", LogBox.Patron);
+                    return;
                 }
-            }
-            catch (OperationCanceledException) { }
+            });
+                    
+            //pub.TryWhile(true, () =>
+            //{
+            //    
+            //});
         }
 
         private void WaitForTable()
         {
-            bool foundTable = false;
-            try
+            pub.RunAsTask(() =>
             {
-                while (!foundTable)
+                if (pub.TakenChairs.Count < pub.Params["NumberOfChairs"])
                 {
-                    pub.mainWindow.token.ThrowIfCancellationRequested();
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                    if (pub.TakenChairs.Count < pub.Params["NumberOfChairs"])
+                    Thread.Sleep(pub.Params["PatronTableTiming"]);
+                    lock (pub.TakenChairs)
                     {
-                        pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-
-                        Thread.Sleep(pub.Params["PatronTableTiming"]);
-                        lock (pub.TakenChairs)
-                        {
-                            pub.TakenChairs.Add(this);
-                        }
-                        pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-
-                        pub.Log($"{patronName} found a chair", LogBox.Patron);
-                        return;
+                        pub.TakenChairs.Add(this);
                     }
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+
+                    pub.Log($"{patronName} found a chair", LogBox.Patron);
+                    return;
                 }
-            }
-            catch (OperationCanceledException) { }
+            });
         }
 
         private void DrinkAndLeave()
@@ -110,6 +104,7 @@ namespace Labb6
                 pub.TakenChairs.Remove(this);
                 pub.Table.Push(glass);
                 pub.Log($"{patronName} left", LogBox.Patron);
+                Console.WriteLine($"{patronName} left");
             }
         }
     }

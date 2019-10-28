@@ -13,7 +13,6 @@ namespace Labb6
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
             pub.RunAsTask(() =>
             {
-                pub.mainWindow.token.ThrowIfCancellationRequested();
                 pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
 
                 currentPatron = WaitForPatron();
@@ -29,7 +28,8 @@ namespace Labb6
                 }
             });
         }
-        Patron WaitForPatron()
+
+        private Patron WaitForPatron()
         {
             while (true)
             {
@@ -42,7 +42,7 @@ namespace Labb6
             }
         }
 
-        Glass WaitForGlass()
+        private Glass WaitForGlass()
         {
             while (true)
             {

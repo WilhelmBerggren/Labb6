@@ -17,7 +17,7 @@ namespace Labb6
                 {
                     // Ligger här för att stoppa denna tasken att skapa en ny patron hela tiden
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-                    new Patron(pub);
+                    _ = new Patron(pub);
                 }, pub.mainWindow.token);
             });
         }
