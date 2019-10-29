@@ -17,24 +17,28 @@ namespace Labb6
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
-        public Dictionary<string, int> Params { get; }
+        public Dictionary<string, double> Params { get; set; }
+
         private TaskFactory taskFactory;
+        private bool badGuyBouncer;
+        public bool BadGuyBouncer { get => badGuyBouncer; set => badGuyBouncer = value; }
+
         public Pub(MainWindow mainWindow)
         {
             this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
 
-            this.Params = new Dictionary<string, int>()
+            this.Params = new Dictionary<string, double>()
             {
-                { "BartenderGlassTiming", 3000 },
-                { "BartenderPourTiming", 3000 },
-                { "WaitressClearTiming", 10000 },
-                { "WaitressPlaceTiming", 15000 },
-                { "BouncerMinTiming", 3000 },
-                { "BouncerMaxTiming", 10000 },
-                { "PatronArriveTiming", 1000 },
-                { "PatronTableTiming", 4000 },
-                { "PatronMinDrinkTiming", 10000 },
-                { "PatronMaxDrinkTiming", 20000 },
+                { "BartenderGlassTiming", 3 },
+                { "BartenderPourTiming", 3 },
+                { "WaitressClearTiming", 10 },
+                { "WaitressPlaceTiming", 15 },
+                { "BouncerMinTiming", 3 },
+                { "BouncerMaxTiming", 10 },
+                { "PatronArriveTiming", 1 },
+                { "PatronTableTiming", 4 },
+                { "PatronMinDrinkTiming", 20 },
+                { "PatronMaxDrinkTiming", 30 },
                 { "NumberOfGlasses", 8 },
                 { "NumberOfChairs", 9 }
             };
@@ -44,7 +48,7 @@ namespace Labb6
             WaitingPatrons = new ConcurrentQueue<Patron>();
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
-            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, Params["NumberOfGlasses"]).Select(i => new Glass()));
+            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)Params["NumberOfGlasses"]).Select(i => new Glass()));
         }
 
         public void OpenTheBar()
@@ -98,12 +102,11 @@ namespace Labb6
             Task.Run(() => action(), mainWindow.token);
         }
 
-        public static void Sleep(int milliseconds, ManualResetEvent manualResetEvent)
+        public static void Sleep(double seconds, ManualResetEvent manualResetEvent)
         {
             if (manualResetEvent == null)
                 throw new ArgumentNullException(nameof(manualResetEvent));
 
-            int seconds = milliseconds / 1000;
             for (int i = 0; i < seconds; i++)
             {
                 manualResetEvent.WaitOne();

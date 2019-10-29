@@ -26,8 +26,6 @@ namespace Labb6
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
-            tokenSource = new CancellationTokenSource();
-            token = tokenSource.Token;
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
@@ -94,16 +92,16 @@ namespace Labb6
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.Params["PatronArriveTiming"] = 2000;
-                        pub.Params["PatronTableTiming"] = 8000;
-                        pub.Params["PatronMinDrinkTiming"] = 20000;
-                        pub.Params["PatronMaxDrinkTiming"] = 40000;
+                        pub.Params["PatronArriveTiming"] = 2;
+                        pub.Params["PatronTableTiming"] = 8;
+                        pub.Params["PatronMinDrinkTiming"] = 40;
+                        pub.Params["PatronMaxDrinkTiming"] = 60;
                         OpenOrCloseBar();
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.Params["WaitressClearTiming"] = 5000;
-                        pub.Params["WaitressPlaceTiming"] = 7500;
+                        pub.Params["WaitressClearTiming"] = 5;
+                        pub.Params["WaitressPlaceTiming"] = 7.5;
                         OpenOrCloseBar();
                         break;
                     //case "5 Minutes open":
@@ -112,9 +110,13 @@ namespace Labb6
                     //case "Couples night":
                     // Not yet implemented. Bouncer creates two instances of patrons per turn.
                     //   break;
-                    //case "Bouncer is a jerk":
-                    // Double time to bounce patrons, but after the first 20 sec (ONLY the first 20 sec), let in 15 guests at the same time.
-                    //break;
+                    case "Bouncer is a jerk":
+                        pub = new Pub(this);
+                        pub.Params["BouncerMinTiming"] = 6;
+                        pub.Params["BouncerMaxTiming"] = 20;
+                        pub.BadGuyBouncer = true;
+                        OpenOrCloseBar();
+                    break;
                     default:
                         break;
                 }
@@ -138,12 +140,16 @@ namespace Labb6
 
             if (desiredState == BarState.WantsToClose)
             {
+                //if (PatronsAreStillPresentInBar)
+                //{
+                //    Disable"OpenBar" button until bar is empty.
+                //}
+                //else (if bar is empty...)
+                //{
+                //    Let it roll...
+                //}
                 pub.CloseTheBar();
                 SelectionIsMade = false;
-                PatronListBox.Items.Clear();
-                BartenderListBox.Items.Clear();
-                WaitressListBox.Items.Clear();
-                EventListBox.Items.Clear();
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
                 Pause_BartenderButton.Content = "Pause";
@@ -156,10 +162,14 @@ namespace Labb6
             }
             else
             {
-                pub.OpenTheBar();
-                SelectionIsMade = true;
+                PatronListBox.Items.Clear();
+                BartenderListBox.Items.Clear();
+                WaitressListBox.Items.Clear();
+                EventListBox.Items.Clear();
                 tokenSource = new CancellationTokenSource();
                 token = tokenSource.Token;
+                pub.OpenTheBar();
+                SelectionIsMade = true;
                 ToggleBarOpenButton.Content = "Close bar";
                 LogEvent("TestCase: " + TestCase.SelectedValue.ToString().Substring(38), LogBox.Event);
                 Pause_GuestsButton.IsEnabled = true;
