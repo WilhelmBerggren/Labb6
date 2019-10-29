@@ -94,16 +94,16 @@ namespace Labb6
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.Params["PatronArriveTiming"] = 2000;
-                        pub.Params["PatronTableTiming"] = 8000;
-                        pub.Params["PatronMinDrinkTiming"] = 20000;
-                        pub.Params["PatronMaxDrinkTiming"] = 40000;
+                        pub.Params["PatronArriveTiming"] = 2;
+                        pub.Params["PatronTableTiming"] = 8;
+                        pub.Params["PatronMinDrinkTiming"] = 20;
+                        pub.Params["PatronMaxDrinkTiming"] = 40;
                         OpenOrCloseBar();
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.Params["WaitressClearTiming"] = 5000;
-                        pub.Params["WaitressPlaceTiming"] = 7500;
+                        pub.Params["WaitressClearTiming"] = 5;
+                        pub.Params["WaitressPlaceTiming"] = 7.5;
                         OpenOrCloseBar();
                         break;
                     //case "5 Minutes open":

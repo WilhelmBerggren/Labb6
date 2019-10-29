@@ -90,7 +90,7 @@ namespace Labb6
         private void DrinkAndLeave()
         {
 
-            Pub.Sleep(new Random().Next(pub.Params["PatronMinDrinkTiming"], pub.Params["PatronMaxDrinkTiming"]), 
+            Pub.Sleep(new Random().Next((int) pub.Params["PatronMinDrinkTiming"], (int) pub.Params["PatronMaxDrinkTiming"]), 
                 pub.mainWindow.pauseBouncerAndPatrons);
 
             lock (pub.TakenChairs)

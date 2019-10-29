@@ -11,7 +11,7 @@ namespace Labb6
         public Bartender(Pub pub)
         {
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-            Pub.WhileOpen(pub, () =>
+            while(pub.WaitingPatrons.Count > 0)
             {
                 currentPatron = WaitForPatron();
                 currentGlass = WaitForGlass();
@@ -23,7 +23,14 @@ namespace Labb6
                 {
                     pub.BarDisk.Add(currentPatron, currentGlass);
                 }
-            });
+            }
+            WaitForPatronsToLeave();
+        }
+
+        private void WaitForPatronsToLeave()
+        {
+            while(pub.WaitingPatrons.Count + pub.TakenChairs.Count + pub.Table.Count > 0) { /*block*/ }
+            pub.Log("Went home", LogBox.Bartender);
         }
 
         private Patron WaitForPatron()
