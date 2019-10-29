@@ -14,11 +14,18 @@ namespace Labb6
             glasses = new Stack<Glass>();
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
 
-            Pub.WhileOpen(pub, () =>
+            while (pub.IsOpen || pub.Table.Count > 0)
             {
                 TakeEmptyGlasses();
                 PlaceGlass();
-            });
+            }
+            WaitForPatronsToLeave();
+        }
+
+        private void WaitForPatronsToLeave()
+        {
+            while (pub.WaitingPatrons.Count + pub.TakenChairs.Count + pub.Table.Count > 0) { /*block*/ }
+            pub.Log("Went home", LogBox.Waitress);
         }
 
         private void TakeEmptyGlasses()
@@ -35,7 +42,7 @@ namespace Labb6
             if (glasses.Count != 0)
             {
                 pub.Log("Goes to collect glasses...", LogBox.Waitress);
-                Pub.Sleep(pub.Params["WaitressClearTiming"], pub.mainWindow.pauseWaitress);
+                Pub.Sleep(pub.PubOptions.WaitressClearTiming, pub.mainWindow.pauseWaitress);
             }
         }
         
@@ -45,7 +52,7 @@ namespace Labb6
             {
                 pub.Log("Does dishes...", LogBox.Waitress);
 
-                Pub.Sleep(pub.Params["WaitressPlaceTiming"], pub.mainWindow.pauseWaitress);
+                Pub.Sleep(pub.PubOptions.WaitressPlaceTiming, pub.mainWindow.pauseWaitress);
                 while (glasses.Count > 0)
                 {
                     pub.Shelf.Push(glasses.Pop());

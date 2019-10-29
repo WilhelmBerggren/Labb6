@@ -7,6 +7,22 @@ using System.Threading.Tasks;
 
 namespace Labb6
 {
+    public struct PubOptions
+    {
+        public double BartenderGlassTiming;
+        public double BartenderPourTiming;
+        public double WaitressClearTiming;
+        public double WaitressPlaceTiming;
+        public double BouncerMinTiming;
+        public double BouncerMaxTiming;
+        public double PatronArriveTiming;
+        public double PatronTableTiming;
+        public double PatronMinDrinkTiming;
+        public double PatronMaxDrinkTiming;
+        public double NumberOfGlasses;
+        public double NumberOfChairs;
+    }
+
     public class Pub
     {
         public bool IsOpen { get; set; } = false;
@@ -17,25 +33,25 @@ namespace Labb6
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
-        public Dictionary<string, double> Params { get; }
+        public PubOptions PubOptions;
         public Pub(MainWindow mainWindow)
         {
             this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
 
-            this.Params = new Dictionary<string, double>()
+            this.PubOptions = new PubOptions()
             {
-                { "BartenderGlassTiming", 3 },
-                { "BartenderPourTiming", 3 },
-                { "WaitressClearTiming", 10 },
-                { "WaitressPlaceTiming", 15 },
-                { "BouncerMinTiming", 3 },
-                { "BouncerMaxTiming", 10 },
-                { "PatronArriveTiming", 1 },
-                { "PatronTableTiming", 4 },
-                { "PatronMinDrinkTiming", 20 },
-                { "PatronMaxDrinkTiming", 30 },
-                { "NumberOfGlasses", 8 },
-                { "NumberOfChairs", 9 }
+                BartenderGlassTiming = 3,
+                BartenderPourTiming = 3,
+                WaitressClearTiming = 10,
+                WaitressPlaceTiming = 15,
+                BouncerMinTiming = 3,
+                BouncerMaxTiming = 10,
+                PatronArriveTiming = 1,
+                PatronTableTiming = 4,
+                PatronMinDrinkTiming = 20,
+                PatronMaxDrinkTiming = 30,
+                NumberOfGlasses = 8,
+                NumberOfChairs = 9
             };
 
             IsOpen = false;
@@ -43,7 +59,7 @@ namespace Labb6
             WaitingPatrons = new ConcurrentQueue<Patron>();
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
-            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int) Params["NumberOfGlasses"]).Select(i => new Glass()));
+            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int) PubOptions.NumberOfGlasses).Select(i => new Glass()));
         }
 
         public void OpenTheBar()

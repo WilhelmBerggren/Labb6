@@ -14,7 +14,7 @@ namespace Labb6
 
             Pub.WhileOpen(pub, () =>
             {
-                int wait = random.Next((int) pub.Params["BouncerMinTiming"], (int) pub.Params["BouncerMaxTiming"]);
+                int wait = random.Next((int) pub.PubOptions.BouncerMinTiming, (int) pub.PubOptions.BouncerMaxTiming);
                 Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
                  pub.RunAsTask(() => _ = new Patron(pub));
             });

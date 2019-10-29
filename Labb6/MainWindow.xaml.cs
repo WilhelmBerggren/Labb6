@@ -82,28 +82,28 @@ namespace Labb6
                         break;
                     case "20 Glasses, 3 chairs":
                         pub = new Pub(this);
-                        pub.Params["NumberOfGlasses"] = 20;
-                        pub.Params["NumberOfChairs"] = 3;
+                        pub.PubOptions.NumberOfGlasses = 20;
+                        pub.PubOptions.NumberOfChairs = 3;
                         OpenOrCloseBar();
                         break;
                     case "20 Chairs, 5 Glasses":
                         pub = new Pub(this);
-                        pub.Params["NumberOfChairs"] = 20;
-                        pub.Params["NumberOfGlasses"] = 5;
+                        pub.PubOptions.NumberOfChairs = 20;
+                        pub.PubOptions.NumberOfGlasses = 5;
                         OpenOrCloseBar();
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.Params["PatronArriveTiming"] = 2;
-                        pub.Params["PatronTableTiming"] = 8;
-                        pub.Params["PatronMinDrinkTiming"] = 20;
-                        pub.Params["PatronMaxDrinkTiming"] = 40;
+                        pub.PubOptions.PatronArriveTiming = 2;
+                        pub.PubOptions.PatronTableTiming = 8;
+                        pub.PubOptions.PatronMinDrinkTiming = 20;
+                        pub.PubOptions.PatronMaxDrinkTiming = 40;
                         OpenOrCloseBar();
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.Params["WaitressClearTiming"] = 5;
-                        pub.Params["WaitressPlaceTiming"] = 7.5;
+                        pub.PubOptions.WaitressClearTiming = 5;
+                        pub.PubOptions.WaitressPlaceTiming = 7.5;
                         OpenOrCloseBar();
                         break;
                     //case "5 Minutes open":
