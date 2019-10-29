@@ -5,13 +5,15 @@ using System.Threading;
 
 namespace Labb6
 {
-    static class Name {
+    static class Name
+    {
         static Random random = new Random();
         private static Queue<string> names = new Queue<string>(
             new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", 
                 "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", 
                 "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa" }
             .OrderBy(x => random.Next()).ToArray());
+
         public static string GetName()
         {
             string selectedName;
@@ -48,7 +50,7 @@ namespace Labb6
         private void PrintPatronInfo()
         {
             if (this.patronName == "Karen")
-                pub.Log($"{patronName} enters the pub. She wants to speak to the manager!", LogBox.Patron);
+                pub.Log($"{patronName} enters the pub.\nShe wants to speak to the manager!", LogBox.Patron);
             else
                 pub.Log($"{patronName} enters the pub", LogBox.Patron);
         }

@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Labb6
 {
@@ -16,16 +18,42 @@ namespace Labb6
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
 
+
+        DispatcherTimer timer;
         private bool SelectionIsMade = false;
+        public int BarOpenForDuration { get; set; } = 120; // given in seconds. default value == 120 sec (2min)
 
         private Pub pub;
 
         public MainWindow()
         {
+            timer = new DispatcherTimer();
             InitializeComponent();
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
+        }
+
+        private void TimerInitialization()
+        {
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += OnTimer_Tick;
+        }
+
+        private void OnTimer_Tick(object sender, EventArgs e)
+        {
+            if (BarOpenForDuration == 0)
+            {
+                timer.Stop();
+                pub.IsOpen = false;
+                timerLabel.Content = "00:00";
+            }
+            else
+            {
+                DateTime TimerStartTime = DateTime.Now;
+                timerLabel.Content = (TimeSpan.FromSeconds(BarOpenForDuration) - (DateTime.Now - TimerStartTime)).ToString("mm\\:ss");
+                BarOpenForDuration--;
+            }
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
@@ -140,7 +168,9 @@ namespace Labb6
                 //{
                 //    Let it roll...
                 //}
+                timer.Stop();
                 pub.CloseTheBar();
+                timer = new DispatcherTimer();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
@@ -154,6 +184,7 @@ namespace Labb6
             }
             else
             {
+                TimerInitialization();
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
                 WaitressListBox.Items.Clear();
@@ -161,6 +192,7 @@ namespace Labb6
                 tokenSource = new CancellationTokenSource();
                 token = tokenSource.Token;
                 pub.OpenTheBar();
+                timer.Start();
                 SelectionIsMade = true;
                 ToggleBarOpenButton.Content = "Close bar";
                 LogEvent("TestCase: " + TestCase.SelectedValue.ToString().Substring(38), LogBox.Event);
@@ -198,7 +230,7 @@ namespace Labb6
                     this.Dispatcher.Invoke(() => EventListBox.Items.Insert(0, text));
                     break;
                 case LogBox.Bartender:
-                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text));
+                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text ));
                     break;
                 case LogBox.Patron:
                     this.Dispatcher.Invoke(() => PatronListBox.Items.Insert(0, text));

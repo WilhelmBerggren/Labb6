@@ -83,7 +83,9 @@ namespace Labb6
 
         public void Log(string text, LogBox listbox)
         {
-            mainWindow.LogEvent(text, listbox);
+            string timeStamp = DateTime.Now.ToString("T");
+            string addSpace = " ";
+            mainWindow.LogEvent(timeStamp + addSpace + text, listbox);
         }
 
         private void InfoPrinter()
