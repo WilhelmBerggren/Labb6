@@ -10,15 +10,13 @@ namespace Labb6
         public Bouncer(Pub pub)
         {
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-            pub.RunAsTask(() =>
+            Random random = new Random();
+
+            Pub.WhileOpen(pub, () =>
             {
-                Thread.Sleep(new Random().Next(pub.Params["BouncerMinTiming"], pub.Params["BouncerMaxTiming"]));
-                Task.Run(() =>
-                {
-                    // Ligger här för att stoppa denna tasken att skapa en ny patron hela tiden
-                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-                    _ = new Patron(pub);
-                }, pub.mainWindow.token);
+                int wait = random.Next(pub.Params["BouncerMinTiming"], pub.Params["BouncerMaxTiming"]);
+                Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
+                 pub.RunAsTask(() => _ = new Patron(pub));
             });
         }
     }

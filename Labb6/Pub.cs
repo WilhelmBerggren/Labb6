@@ -13,18 +13,16 @@ namespace Labb6
         internal MainWindow mainWindow;
 
         internal ConcurrentQueue<Patron> WaitingPatrons { get; set; }
-        private Bartender bartender;
-        private Waitress waitress;
-        private Bouncer bouncer;
         internal ConcurrentStack<Glass> Shelf { get; set; }
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public Dictionary<string, int> Params { get; }
-
+        private TaskFactory taskFactory;
         public Pub(MainWindow mainWindow)
         {
-            this.mainWindow = mainWindow;
+            this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+
             this.Params = new Dictionary<string, int>()
             {
                 { "BartenderGlassTiming", 3000 },
@@ -53,9 +51,9 @@ namespace Labb6
         {
             IsOpen = true;
             InfoPrinter();
-            bouncer = new Bouncer(this);
-            bartender = new Bartender(this);
-            waitress = new Waitress(this);
+            RunAsTask(() => _ = new Bouncer(this));
+            RunAsTask(() => _ = new Bartender(this));
+            RunAsTask(() => _ = new Waitress(this));
         }
 
         public void CloseTheBar()
@@ -73,35 +71,44 @@ namespace Labb6
         {
             RunAsTask(() =>
             {
-                mainWindow.token.ThrowIfCancellationRequested();
-                Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
-                Thread.Sleep(1000);
+                Pub.WhileOpen(this, () =>
+                {
+                    if (mainWindow.token.IsCancellationRequested)
+                        return;
+
+                    Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
+                    Thread.Sleep(1000);
+                });
             });
         }
 
-        public void TryWhile(bool cond, Action action)
+        public static void WhileOpen(Pub pub, Action action)
         {
-            try
+            while (pub.IsOpen)
             {
-                while (cond)
-                {
-                    this.mainWindow.token.ThrowIfCancellationRequested();
-                    action();
-                }
+                if (pub.mainWindow.token.IsCancellationRequested)
+                    return;
+
+                action();
             }
-            catch (OperationCanceledException) { }
         }
 
         public void RunAsTask(Action action)
         {
-            Task.Run(() =>
+            Task.Run(() => action(), mainWindow.token);
+        }
+
+        public static void Sleep(int milliseconds, ManualResetEvent manualResetEvent)
+        {
+            if (manualResetEvent == null)
+                throw new ArgumentNullException(nameof(manualResetEvent));
+
+            int seconds = milliseconds / 1000;
+            for (int i = 0; i < seconds; i++)
             {
-                TryWhile(this.IsOpen, () =>
-                {
-                    // Ligger här för att också stoppa denna task för att köra om och om igen, och sedan spotta ut en jäkla massa patrons
-                    action();
-                });
-            }, mainWindow.token);
+                manualResetEvent.WaitOne();
+                Thread.Sleep(1000);
+            }
         }
     }
 }

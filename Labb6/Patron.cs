@@ -1,22 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
 namespace Labb6
 {
     static class Name {
-        private static string[] nameArray = new string[25]
-        {
-            "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William",
-            "Elizabeth", "David", "Barbara", "Richard", "Susan","Joseph", "Jessica", "Thomas", "Sarah",
-            "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa"
-        };
+        private static Queue<string> names = new Queue<string>(new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa" });
         public static string GetName()
         {
-            int selectedName = new Random().Next(0, nameArray.Length);
-            return nameArray[selectedName];
+            string selectedName;
+            lock (names)
+            {
+                selectedName = names.Dequeue();
+                names.Enqueue(selectedName);
+            }
+            return selectedName;
         }
     }
+
     public class Patron
     {
         private Pub pub;
@@ -29,7 +31,7 @@ namespace Labb6
             this.patronName = Name.GetName();
 
             PrintPatronInfo();
-            Thread.Sleep(pub.Params["PatronArriveTiming"]);
+            Pub.Sleep(pub.Params["PatronArriveTiming"], pub.mainWindow.pauseBouncerAndPatrons);
             pub.WaitingPatrons.Enqueue(this);
             pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
 
@@ -48,11 +50,9 @@ namespace Labb6
 
         private void WaitForGlass()
         {
-            pub.RunAsTask(() =>
+            while (true)
             {
-                pub.mainWindow.token.ThrowIfCancellationRequested();
                 pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-
                 if (pub.BarDisk.ContainsKey(this))
                 {
                     lock (pub.BarDisk)
@@ -63,48 +63,41 @@ namespace Labb6
                     pub.Log($"{patronName} got a glass", LogBox.Patron);
                     return;
                 }
-            });
-                    
-            //pub.TryWhile(true, () =>
-            //{
-            //    
-            //});
+            }
         }
 
         private void WaitForTable()
         {
-            pub.RunAsTask(() =>
+            while (true)
             {
                 if (pub.TakenChairs.Count < pub.Params["NumberOfChairs"])
                 {
-                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-                    Thread.Sleep(pub.Params["PatronTableTiming"]);
+                    Pub.Sleep(pub.Params["PatronTableTiming"], pub.mainWindow.pauseBouncerAndPatrons);
+
                     lock (pub.TakenChairs)
                     {
                         pub.TakenChairs.Add(this);
                     }
-                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
                     pub.Log($"{patronName} found a chair", LogBox.Patron);
                     return;
                 }
-            });
+            }
         }
 
         private void DrinkAndLeave()
         {
-            pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
 
-            Thread.Sleep(new Random().Next(pub.Params["PatronMinDrinkTiming"], pub.Params["PatronMaxDrinkTiming"]));
+            Pub.Sleep(new Random().Next(pub.Params["PatronMinDrinkTiming"], pub.Params["PatronMaxDrinkTiming"]), 
+                pub.mainWindow.pauseBouncerAndPatrons);
+
             lock (pub.TakenChairs)
             {
-                pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
-
                 pub.TakenChairs.Remove(this);
                 pub.Table.Push(glass);
                 pub.Log($"{patronName} left", LogBox.Patron);
-                Console.WriteLine($"{patronName} left");
             }
         }
     }

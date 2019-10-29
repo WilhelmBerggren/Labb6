@@ -11,16 +11,13 @@ namespace Labb6
         public Bartender(Pub pub)
         {
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-            pub.RunAsTask(() =>
+            Pub.WhileOpen(pub, () =>
             {
-                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
-
                 currentPatron = WaitForPatron();
                 currentGlass = WaitForGlass();
-                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
 
                 pub.Log("Pouring beer...", LogBox.Bartender);
-                Thread.Sleep(pub.Params["BartenderPourTiming"]);
+                Pub.Sleep(pub.Params["BartenderPourTiming"], pub.mainWindow.pauseBartender);
 
                 lock (pub.BarDisk)
                 {
@@ -33,7 +30,7 @@ namespace Labb6
         {
             while (true)
             {
-                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseBartender.WaitOne();
 
                 if (pub.WaitingPatrons.TryDequeue(out Patron patron))
                 {
@@ -46,13 +43,11 @@ namespace Labb6
         {
             while (true)
             {
-                pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseBartender.WaitOne();
                 if (pub.Shelf.TryPeek(out _))
                 {
-
                     pub.Log("Collecting glass...", LogBox.Bartender);
-                    Thread.Sleep(pub.Params["BartenderGlassTiming"]);
-                    pub.mainWindow.pauseBartender.WaitOne(Timeout.Infinite);
+                    Pub.Sleep(pub.Params["BartenderGlassTiming"], pub.mainWindow.pauseBartender);
 
                     pub.Shelf.TryPop(out Glass glass);
                     return glass;
