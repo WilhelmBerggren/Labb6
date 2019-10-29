@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Labb6
 {
-    public struct PubOptions
+    public class PubOptions
     {
         public double BartenderGlassTiming;
         public double BartenderPourTiming;
@@ -21,6 +21,8 @@ namespace Labb6
         public double PatronMaxDrinkTiming;
         public double NumberOfGlasses;
         public double NumberOfChairs;
+
+        public int BadGuyBouncer { get; internal set; }
     }
 
     public class Pub
@@ -34,9 +36,6 @@ namespace Labb6
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public PubOptions PubOptions;
-        public Dictionary<string, double> Params { get; set; }
-        private bool badGuyBouncer;
-        public bool BadGuyBouncer { get => badGuyBouncer; set => badGuyBouncer = value; }
 
         public Pub(MainWindow mainWindow)
         {
@@ -55,20 +54,21 @@ namespace Labb6
                 PatronMinDrinkTiming = 20,
                 PatronMaxDrinkTiming = 30,
                 NumberOfGlasses = 8,
-                NumberOfChairs = 9
+                NumberOfChairs = 9,
+                BadGuyBouncer = 0
             };
 
             IsOpen = false;
-            Table = new ConcurrentStack<Glass>();
-            WaitingPatrons = new ConcurrentQueue<Patron>();
-            TakenChairs = new List<Patron>();
-            BarDisk = new Dictionary<Patron, Glass>();
-            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int) PubOptions.NumberOfGlasses).Select(i => new Glass()));
         }
 
         public void OpenTheBar()
         {
             IsOpen = true;
+            Table = new ConcurrentStack<Glass>();
+            WaitingPatrons = new ConcurrentQueue<Patron>();
+            TakenChairs = new List<Patron>();
+            BarDisk = new Dictionary<Patron, Glass>();
+            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)PubOptions.NumberOfGlasses).Select(i => new Glass()));
             InfoPrinter();
             RunAsTask(() => _ = new Bouncer(this));
             RunAsTask(() => _ = new Bartender(this));

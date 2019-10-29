@@ -7,7 +7,7 @@ namespace Labb6
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public enum LogBox { Event, Bartender, Waitress, Patron }
-    public enum SetBarState { WantsToOpen, WantsToClose }
+    public enum BarState { Open, Close }
     public partial class MainWindow : Window
     {
         internal ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
@@ -76,19 +76,19 @@ namespace Labb6
                 {
                     case "Default":
                         pub = new Pub(this);
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     case "20 Glasses, 3 chairs":
                         pub = new Pub(this);
                         pub.PubOptions.NumberOfGlasses = 20;
                         pub.PubOptions.NumberOfChairs = 3;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     case "20 Chairs, 5 Glasses":
                         pub = new Pub(this);
                         pub.PubOptions.NumberOfChairs = 20;
                         pub.PubOptions.NumberOfGlasses = 5;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
@@ -96,13 +96,13 @@ namespace Labb6
                         pub.PubOptions.PatronTableTiming = 8;
                         pub.PubOptions.PatronMinDrinkTiming = 20;
                         pub.PubOptions.PatronMaxDrinkTiming = 40;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
                         pub.PubOptions.WaitressClearTiming = 5;
                         pub.PubOptions.WaitressPlaceTiming = 7.5;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     //case "5 Minutes open":
                     //  Not yet implemented countdown.
@@ -112,25 +112,25 @@ namespace Labb6
                     //   break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
-                        pub.Params["BouncerMinTiming"] = 6;
-                        pub.Params["BouncerMaxTiming"] = 20;
-                        pub.BadGuyBouncer = true;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.BouncerMinTiming = 6;
+                        pub.PubOptions.BouncerMaxTiming = 20;
+                        pub.PubOptions.BadGuyBouncer = 1;
+                        SetBarState(BarState.Open);
                     break;
                     default:
                         break;
                 }
             }
             else
-                OpenOrCloseBar(SetBarState.WantsToClose);
+                SetBarState(BarState.Close);
         }
 
-        private void OpenOrCloseBar(SetBarState desiredState)
+        private void SetBarState(BarState newState)
         {
             if (pub == null)
                 return;
 
-            if (desiredState == SetBarState.WantsToClose)
+            if (newState == BarState.Close)
             {
                 //if (PatronsAreStillPresentInBar)
                 //{
@@ -180,12 +180,12 @@ namespace Labb6
 
             if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
             {
-                OpenOrCloseBar(SetBarState.WantsToClose);
+                SetBarState(BarState.Close);
                 PanicButton.Content = "Phew! Crisis averted... :-)";
             }
             else
             {
-                OpenOrCloseBar(SetBarState.WantsToOpen);
+                SetBarState(BarState.Open);
                 PanicButton.Content = "Panic! Pause all threads!";
             }
         }

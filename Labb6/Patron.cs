@@ -77,12 +77,11 @@ namespace Labb6
             {
                 if (pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
                 {
-
-                    Pub.Sleep(pub.PubOptions.PatronTableTiming, pub.mainWindow.pauseBouncerAndPatrons);
-
                     lock (pub.TakenChairs)
                     {
-                        pub.TakenChairs.Add(this);
+                        Pub.Sleep(pub.PubOptions.PatronTableTiming, pub.mainWindow.pauseBouncerAndPatrons);
+                        if(pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
+                            pub.TakenChairs.Add(this);
                     }
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
@@ -94,7 +93,6 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
-
             Pub.Sleep(new Random().Next((int) pub.PubOptions.PatronMinDrinkTiming, (int) pub.PubOptions.PatronMaxDrinkTiming), 
                 pub.mainWindow.pauseBouncerAndPatrons);
 
