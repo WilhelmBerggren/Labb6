@@ -7,7 +7,7 @@ namespace Labb6
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public enum LogBox { Event, Bartender, Waitress, Patron }
-    public enum BarState { WantsToOpen, WantsToClose }
+    public enum SetBarState { WantsToOpen, WantsToClose }
     public partial class MainWindow : Window
     {
         internal ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
@@ -76,19 +76,19 @@ namespace Labb6
                 {
                     case "Default":
                         pub = new Pub(this);
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                         break;
                     case "20 Glasses, 3 chairs":
                         pub = new Pub(this);
                         pub.Params["NumberOfGlasses"] = 20;
                         pub.Params["NumberOfChairs"] = 3;
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                         break;
                     case "20 Chairs, 5 Glasses":
                         pub = new Pub(this);
                         pub.Params["NumberOfChairs"] = 20;
                         pub.Params["NumberOfGlasses"] = 5;
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
@@ -96,13 +96,13 @@ namespace Labb6
                         pub.Params["PatronTableTiming"] = 8;
                         pub.Params["PatronMinDrinkTiming"] = 40;
                         pub.Params["PatronMaxDrinkTiming"] = 60;
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
                         pub.Params["WaitressClearTiming"] = 5;
                         pub.Params["WaitressPlaceTiming"] = 7.5;
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                         break;
                     //case "5 Minutes open":
                     //  Not yet implemented countdown.
@@ -115,30 +115,22 @@ namespace Labb6
                         pub.Params["BouncerMinTiming"] = 6;
                         pub.Params["BouncerMaxTiming"] = 20;
                         pub.BadGuyBouncer = true;
-                        OpenOrCloseBar();
+                        OpenOrCloseBar(SetBarState.WantsToOpen);
                     break;
                     default:
                         break;
                 }
             }
             else
-                OpenOrCloseBar();
+                OpenOrCloseBar(SetBarState.WantsToClose);
         }
 
-        private void OpenOrCloseBar()
-        {
-            if (pub.IsOpen)
-                OpenOrCloseBar(BarState.WantsToClose);
-            else
-                OpenOrCloseBar(BarState.WantsToOpen);
-        }
-
-        private void OpenOrCloseBar(BarState desiredState)
+        private void OpenOrCloseBar(SetBarState desiredState)
         {
             if (pub == null)
                 return;
 
-            if (desiredState == BarState.WantsToClose)
+            if (desiredState == SetBarState.WantsToClose)
             {
                 //if (PatronsAreStillPresentInBar)
                 //{
@@ -188,12 +180,12 @@ namespace Labb6
 
             if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
             {
-                OpenOrCloseBar(BarState.WantsToClose);
+                OpenOrCloseBar(SetBarState.WantsToClose);
                 PanicButton.Content = "Phew! Crisis averted... :-)";
             }
             else
             {
-                OpenOrCloseBar(BarState.WantsToOpen);
+                OpenOrCloseBar(SetBarState.WantsToOpen);
                 PanicButton.Content = "Panic! Pause all threads!";
             }
         }
