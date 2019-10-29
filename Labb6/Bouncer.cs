@@ -12,11 +12,36 @@ namespace Labb6
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
             Random random = new Random();
 
+
+            if (pub.BadGuyBouncer)
+            {
+                BadGuyBouncer(random);
+                pub.Log("The bouncer bangs his chest...\n" +
+                    "No more Mr. Niceguy!", LogBox.Event);
+            }
+            else
+            {
+                NiceGuyBouncer(random);
+            }
+        }
+
+        private void NiceGuyBouncer(Random random)
+        {
+            Pub.WhileOpen(pub, () =>
+            {
+                int wait = random.Next((int)pub.Params["BouncerMinTiming"], (int)pub.Params["BouncerMaxTiming"]);
+                Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
+                pub.RunAsTask(() => _ = new Patron(pub));
+            });
+        }
+
+        private void BadGuyBouncer(Random random)
+        {
             Pub.WhileOpen(pub, () =>
             {
                 int wait = random.Next((int) pub.PubOptions.BouncerMinTiming, (int) pub.PubOptions.BouncerMaxTiming);
                 Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
-                 pub.RunAsTask(() => _ = new Patron(pub));
+                pub.RunAsTask(() => _ = new Patron(pub));
             });
         }
     }

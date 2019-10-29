@@ -34,6 +34,10 @@ namespace Labb6
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public PubOptions PubOptions;
+        public Dictionary<string, double> Params { get; set; }
+        private bool badGuyBouncer;
+        public bool BadGuyBouncer { get => badGuyBouncer; set => badGuyBouncer = value; }
+
         public Pub(MainWindow mainWindow)
         {
             this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
