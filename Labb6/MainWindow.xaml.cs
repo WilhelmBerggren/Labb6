@@ -19,7 +19,6 @@ namespace Labb6
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
 
-
         DispatcherTimer timer;
         private bool SelectionIsMade = false;
         public int BarOpenForDuration { get; set; } = 120; // given in seconds. default value == 120 sec (2min)
@@ -70,7 +69,6 @@ namespace Labb6
                 Pause_BartenderButton.Content = "Pause";
             }
         }
-
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e)
         {
             if (Pause_WaitressButton.Content.ToString() == "Pause")
@@ -143,7 +141,7 @@ namespace Labb6
                         pub = new Pub(this);
                         pub.PubOptions.BouncerMinTiming = 6000;
                         pub.PubOptions.BouncerMaxTiming = 20000;
-                        pub.PubOptions.BadGuyBouncer = 1;
+                        pub.PubOptions.BadGuyBouncer = true;
                         SetBarState(BarState.Open);
                     break;
                     default:
@@ -239,8 +237,18 @@ namespace Labb6
             }
         }
 
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (pub != null)
+            {
+                this.pub.PubOptions.Speed = SpeedSlider.Value;
+                SpeedLabel.Content = Math.Round(SpeedSlider.Value, 1);
+            }
+        }
+
         public void LogEvent(string text, LogBox textblock)
         {
+            Console.WriteLine(textblock + ": " + text);
             switch (textblock)
             {
                 case LogBox.Event:
@@ -255,14 +263,6 @@ namespace Labb6
                 case LogBox.Waitress:
                     this.Dispatcher.Invoke(() => WaitressListBox.Items.Insert(0, text));
                     break;
-            }
-        }
-
-        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if(pub != null)
-            {
-                this.pub.PubOptions.Speed = SpeedSlider.Value;
             }
         }
     }

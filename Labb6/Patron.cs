@@ -36,14 +36,14 @@ namespace Labb6
         {
             this.pub = pub;
             this.patronName = Name.GetName();
-
+            Console.WriteLine($"{patronName} arrived");
             PrintPatronInfo();
             //Pub.Sleep(pub.PubOptions.PatronArriveTiming, pub.mainWindow.pauseBouncerAndPatrons);
             Thread.Sleep((int)pub.PubOptions.PatronArriveTiming);
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
             pub.WaitingPatrons.Enqueue(this);
-            pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
-            pub.TotalPresentPatrons++;
+            pub.Log($"{patronName} is waiting to be served", LogBox.Patron);
+
             WaitForGlass();
             WaitForTable();
             DrinkAndLeave();
@@ -77,6 +77,8 @@ namespace Labb6
 
         private void WaitForTable()
         {
+            pub.Log($"{patronName} is waiting to be seated", LogBox.Patron);
+
             while (true)
             {
                 if (pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
