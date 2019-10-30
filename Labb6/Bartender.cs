@@ -39,7 +39,6 @@ namespace Labb6
         private void WaitForPatronsToLeave()
         {
             while (pub.TotalPresentPatrons > 0) { }
-            //while(pub.BarDisk.Count + pub.WaitingPatrons.Count + pub.TakenChairs.Count > 0) { /*block*/ }
             pub.Log("Went home", LogBox.Bartender);
         }
 

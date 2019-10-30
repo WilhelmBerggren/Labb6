@@ -34,22 +34,22 @@ namespace Labb6
                     pub.Log("Oh shit, a bus full of tourists", LogBox.Event);
                     for (int i = 0; i < 15; i++)
                     {
-                        pub.RunAsTask(() => new Patron(pub));
+                        Task.Run(() => new Patron(pub), pub.mainWindow.token);
                     }
                 }
                 else
                 {
-                    pub.RunAsTask(() => new Patron(pub));
+                    Task.Run(() => new Patron(pub), pub.mainWindow.token);
                 }
             }
             else if(pub.PubOptions.CouplesNight)
             {
-                pub.RunAsTask(() => new Patron(pub));
-                pub.RunAsTask(() => new Patron(pub));
+                Task.Run(() => new Patron(pub), pub.mainWindow.token);
+                Task.Run(() => new Patron(pub), pub.mainWindow.token);
             }
             else
             {
-                pub.RunAsTask(() => new Patron(pub));
+                Task.Run(() => new Patron(pub), pub.mainWindow.token);
             }
         }
     }
