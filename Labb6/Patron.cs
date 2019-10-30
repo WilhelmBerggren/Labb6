@@ -9,8 +9,8 @@ namespace Labb6
     {
         static Random random = new Random();
         private static Queue<string> names = new Queue<string>(
-            new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", 
-                "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", 
+            new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William",
+                "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas",
                 "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa" }
             .OrderBy(x => random.Next()).ToArray());
 
@@ -52,7 +52,7 @@ namespace Labb6
         private void PrintPatronInfo()
         {
             if (this.patronName == "Karen")
-                pub.Log($"{patronName} enters the pub.\nShe wants to speak to the manager!", LogBox.Patron);
+                pub.Log($"{patronName} enters the pub.\nShe wants to speak to the manager!\n", LogBox.Patron);
             else
                 pub.Log($"{patronName} enters the pub", LogBox.Patron);
         }
@@ -81,13 +81,13 @@ namespace Labb6
 
             while (true)
             {
-                if (pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
+                if (pub.TakenChairs.Count < pub.PubOptions.MaxNumberOfChairs)
                 {
                     lock (pub.TakenChairs)
                     {
                         Thread.Sleep((int)pub.PubOptions.PatronTableTiming);
                         pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
-                        if(pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
+                        if (pub.TakenChairs.Count < pub.PubOptions.MaxNumberOfChairs)
                             pub.TakenChairs.Add(this);
                     }
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne();

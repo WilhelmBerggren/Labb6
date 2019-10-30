@@ -13,14 +13,14 @@ namespace Labb6
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
             while (pub.IsOpen || pub.WaitingPatrons.Count > 0)
             {
-                if(currentPatron == null)
+                if (currentPatron == null)
                     currentPatron = WaitForPatron();
-                if(currentPatron != null)
+                if (currentPatron != null)
                 {
                     currentGlass = WaitForGlass();
-                    if(currentGlass != null)
+                    if (currentGlass != null)
                     {
-                        pub.Log("Pouring beer...", LogBox.Bartender);
+                        pub.Log("Got glass and pouring beer...", LogBox.Bartender);
                         Thread.Sleep((int)pub.PubOptions.BartenderPourTiming);
                         pub.mainWindow.pauseBartender.WaitOne();
                         lock (pub.BarDisk)
@@ -33,13 +33,14 @@ namespace Labb6
                 }
 
             }
-            WaitForPatronsToLeave();
+            WaitForPatronsAndLoveInterestWaitress();
         }
 
-        private void WaitForPatronsToLeave()
+        private void WaitForPatronsAndLoveInterestWaitress()
         {
-            while (pub.TotalPresentPatrons > 0) { }
-            pub.Log("Went home", LogBox.Bartender);
+            while (pub.TotalPresentPatrons > 0 || pub.WaitressIsPresent) { }
+            pub.Log("Left the bar together with the woman of his dreams, the Waitress...\n", LogBox.Bartender);
+            pub.BartenderIsPresent = false;
         }
 
         private Patron WaitForPatron()

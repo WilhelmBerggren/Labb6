@@ -18,6 +18,8 @@ namespace Labb6
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public int TotalPresentPatrons { get; internal set; }
+        public bool WaitressIsPresent { get; set; } = true;
+        public bool BartenderIsPresent { get; set; } = true;
 
         public PubOptions PubOptions;
 
@@ -61,13 +63,11 @@ namespace Labb6
         {
             Task.Run(() =>
             {
-                while(IsOpen)
+                while (BartenderIsPresent && WaitressIsPresent)
                 {
-                    if (mainWindow.token.IsCancellationRequested)
-                        return;
-
                     Thread.Sleep(1000);
-                    Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
+                    Log($"Patrons present: {TotalPresentPatrons}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {TotalPresentPatrons - TakenChairs.Count}\n" +
+                        $"\tAvailable chairs: {PubOptions.MaxNumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
                 };
             }, mainWindow.token);
         }

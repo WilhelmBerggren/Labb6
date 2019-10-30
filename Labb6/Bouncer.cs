@@ -26,12 +26,12 @@ namespace Labb6
 
         private void CreatePatron()
         {
-            if(pub.PubOptions.BadGuyBouncer)
+            if (pub.PubOptions.BadGuyBouncer)
             {
                 if (pub.mainWindow.BarOpenForDuration <= 100)
                 {
                     pub.PubOptions.BadGuyBouncer = false;
-                    pub.Log("Oh shit, a bus full of tourists", LogBox.Event);
+                    pub.Log("Oh shit, a bus full of tourists!", LogBox.Event);
                     for (int i = 0; i < 15; i++)
                     {
                         Task.Run(() => new Patron(pub), pub.mainWindow.token);
@@ -42,7 +42,7 @@ namespace Labb6
                     Task.Run(() => new Patron(pub), pub.mainWindow.token);
                 }
             }
-            else if(pub.PubOptions.CouplesNight)
+            else if (pub.PubOptions.CouplesNight)
             {
                 Task.Run(() => new Patron(pub), pub.mainWindow.token);
                 Task.Run(() => new Patron(pub), pub.mainWindow.token);
