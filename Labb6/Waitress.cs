@@ -27,7 +27,7 @@ namespace Labb6
             while (pub.TotalPresentPatrons > 0) { }
             pub.Log("Left the bar with her best friend, the bartender.\n", LogBox.Waitress);
             pub.WaitressIsPresent = false;
-            pub.CloseTheBar();
+            pub.Close();
         }
 
         private void TakeEmptyGlasses()

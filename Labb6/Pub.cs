@@ -69,7 +69,7 @@ namespace Labb6
                 {
                     Thread.Sleep(1000);
                     Log($"Patrons present: {TotalPresentPatrons}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {TotalPresentPatrons - TakenChairs.Count}\n" +
-                        $"\tAvailable chairs: {PubOptions.MaxNumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
+                        $"\tAvailable chairs: {Options.NumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
                 };
             }, mainWindow.token);
         }

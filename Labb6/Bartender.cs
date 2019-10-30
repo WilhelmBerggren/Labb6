@@ -21,7 +21,7 @@ namespace Labb6
                     if (currentGlass != null)
                     {
                         pub.Log("Got glass and pouring beer...", LogBox.Bartender);
-                        Thread.Sleep((int)pub.PubOptions.BartenderPourTiming);
+                        Thread.Sleep((int)pub.Options.BartenderPourTiming);
                         pub.mainWindow.pauseBartender.WaitOne();
                         lock (pub.BarDisk)
                         {
