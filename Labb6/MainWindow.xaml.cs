@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Labb6
 {
@@ -7,7 +9,7 @@ namespace Labb6
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public enum LogBox { Event, Bartender, Waitress, Patron }
-    public enum SetBarState { WantsToOpen, WantsToClose }
+    public enum BarState { Open, Close }
     public partial class MainWindow : Window
     {
         internal ManualResetEvent pauseBouncerAndPatrons; // starts out in a signaled state, meaning it does not block by default.
@@ -16,16 +18,42 @@ namespace Labb6
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
 
+
+        DispatcherTimer timer;
         private bool SelectionIsMade = false;
+        public int BarOpenForDuration { get; set; } = 120; // given in seconds. default value == 120 sec (2min)
 
         private Pub pub;
 
         public MainWindow()
         {
+            timer = new DispatcherTimer();
             InitializeComponent();
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
+        }
+
+        private void TimerInitialization()
+        {
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += OnTimer_Tick;
+        }
+
+        private void OnTimer_Tick(object sender, EventArgs e)
+        {
+            if (BarOpenForDuration == 0)
+            {
+                timer.Stop();
+                pub.IsOpen = false;
+                timerLabel.Content = "00:00";
+            }
+            else
+            {
+                DateTime TimerStartTime = DateTime.Now;
+                timerLabel.Content = (TimeSpan.FromSeconds(BarOpenForDuration) - (DateTime.Now - TimerStartTime)).ToString("mm\\:ss");
+                BarOpenForDuration--;
+            }
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
@@ -76,33 +104,33 @@ namespace Labb6
                 {
                     case "Default":
                         pub = new Pub(this);
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        SetBarState(BarState.Open);
                         break;
                     case "20 Glasses, 3 chairs":
                         pub = new Pub(this);
-                        pub.Params["NumberOfGlasses"] = 20;
-                        pub.Params["NumberOfChairs"] = 3;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.NumberOfGlasses = 20;
+                        pub.PubOptions.NumberOfChairs = 3;
+                        SetBarState(BarState.Open);
                         break;
                     case "20 Chairs, 5 Glasses":
                         pub = new Pub(this);
-                        pub.Params["NumberOfChairs"] = 20;
-                        pub.Params["NumberOfGlasses"] = 5;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.NumberOfChairs = 20;
+                        pub.PubOptions.NumberOfGlasses = 5;
+                        SetBarState(BarState.Open);
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.Params["PatronArriveTiming"] = 2;
-                        pub.Params["PatronTableTiming"] = 8;
-                        pub.Params["PatronMinDrinkTiming"] = 40;
-                        pub.Params["PatronMaxDrinkTiming"] = 60;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.PatronArriveTiming = 2;
+                        pub.PubOptions.PatronTableTiming = 8;
+                        pub.PubOptions.PatronMinDrinkTiming = 20;
+                        pub.PubOptions.PatronMaxDrinkTiming = 40;
+                        SetBarState(BarState.Open);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.Params["WaitressClearTiming"] = 5;
-                        pub.Params["WaitressPlaceTiming"] = 7.5;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.WaitressClearTiming = 5;
+                        pub.PubOptions.WaitressPlaceTiming = 7.5;
+                        SetBarState(BarState.Open);
                         break;
                     //case "5 Minutes open":
                     //  Not yet implemented countdown.
@@ -112,25 +140,25 @@ namespace Labb6
                     //   break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
-                        pub.Params["BouncerMinTiming"] = 6;
-                        pub.Params["BouncerMaxTiming"] = 20;
-                        pub.BadGuyBouncer = true;
-                        OpenOrCloseBar(SetBarState.WantsToOpen);
+                        pub.PubOptions.BouncerMinTiming = 6;
+                        pub.PubOptions.BouncerMaxTiming = 20;
+                        pub.PubOptions.BadGuyBouncer = 1;
+                        SetBarState(BarState.Open);
                     break;
                     default:
                         break;
                 }
             }
             else
-                OpenOrCloseBar(SetBarState.WantsToClose);
+                SetBarState(BarState.Close);
         }
 
-        private void OpenOrCloseBar(SetBarState desiredState)
+        private void SetBarState(BarState newState)
         {
             if (pub == null)
                 return;
 
-            if (desiredState == SetBarState.WantsToClose)
+            if (newState == BarState.Close)
             {
                 //if (PatronsAreStillPresentInBar)
                 //{
@@ -140,7 +168,9 @@ namespace Labb6
                 //{
                 //    Let it roll...
                 //}
+                timer.Stop();
                 pub.CloseTheBar();
+                timer = new DispatcherTimer();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
@@ -154,6 +184,7 @@ namespace Labb6
             }
             else
             {
+                TimerInitialization();
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
                 WaitressListBox.Items.Clear();
@@ -161,6 +192,7 @@ namespace Labb6
                 tokenSource = new CancellationTokenSource();
                 token = tokenSource.Token;
                 pub.OpenTheBar();
+                timer.Start();
                 SelectionIsMade = true;
                 ToggleBarOpenButton.Content = "Close bar";
                 LogEvent("TestCase: " + TestCase.SelectedValue.ToString().Substring(38), LogBox.Event);
@@ -180,12 +212,12 @@ namespace Labb6
 
             if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
             {
-                OpenOrCloseBar(SetBarState.WantsToClose);
+                SetBarState(BarState.Close);
                 PanicButton.Content = "Phew! Crisis averted... :-)";
             }
             else
             {
-                OpenOrCloseBar(SetBarState.WantsToOpen);
+                SetBarState(BarState.Open);
                 PanicButton.Content = "Panic! Pause all threads!";
             }
         }
@@ -198,7 +230,7 @@ namespace Labb6
                     this.Dispatcher.Invoke(() => EventListBox.Items.Insert(0, text));
                     break;
                 case LogBox.Bartender:
-                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text));
+                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text ));
                     break;
                 case LogBox.Patron:
                     this.Dispatcher.Invoke(() => PatronListBox.Items.Insert(0, text));

@@ -12,8 +12,7 @@ namespace Labb6
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
             Random random = new Random();
 
-
-            if (pub.BadGuyBouncer)
+            if (pub.PubOptions.BadGuyBouncer == 1)
             {
                 BadGuyBouncer(random);
                 pub.Log("The bouncer bangs his chest...\n" +
@@ -29,7 +28,7 @@ namespace Labb6
         {
             Pub.WhileOpen(pub, () =>
             {
-                int wait = random.Next((int)pub.Params["BouncerMinTiming"], (int)pub.Params["BouncerMaxTiming"]);
+                int wait = random.Next((int)pub.PubOptions.BouncerMinTiming, (int)pub.PubOptions.BouncerMaxTiming);
                 Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
                 pub.RunAsTask(() => _ = new Patron(pub));
             });
@@ -39,11 +38,20 @@ namespace Labb6
         {
             Pub.WhileOpen(pub, () =>
             {
-                // IF timer is after the first 20 seconds, instantiate 15 new patrons all at once.
-                // This occurs only once. After that, he continues as per usual...
-                int wait = random.Next((int)pub.Params["BouncerMinTiming"], (int)pub.Params["BouncerMaxTiming"]);
-                Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
-                pub.RunAsTask(() => _ = new Patron(pub));
+
+                if (pub.mainWindow.BarOpenForDuration <= 100 && pub.mainWindow.BarOpenForDuration > 90)
+                {
+                    for (int i = 0; i < 15; i++)
+                    {
+                        pub.RunAsTask(() => _ = new Patron(pub));
+                    }
+                }
+                else
+                {
+                    int wait = random.Next((int)pub.PubOptions.BouncerMinTiming, (int)pub.PubOptions.BouncerMaxTiming);
+                    Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
+                    pub.RunAsTask(() => _ = new Patron(pub));
+                }
             });
         }
     }

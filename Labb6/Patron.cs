@@ -5,8 +5,15 @@ using System.Threading;
 
 namespace Labb6
 {
-    static class Name {
-        private static Queue<string> names = new Queue<string>(new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa" });
+    static class Name
+    {
+        static Random random = new Random();
+        private static Queue<string> names = new Queue<string>(
+            new[] { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", 
+                "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", 
+                "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Margaret", "Lisa" }
+            .OrderBy(x => random.Next()).ToArray());
+
         public static string GetName()
         {
             string selectedName;
@@ -31,7 +38,7 @@ namespace Labb6
             this.patronName = Name.GetName();
 
             PrintPatronInfo();
-            Pub.Sleep(pub.Params["PatronArriveTiming"], pub.mainWindow.pauseBouncerAndPatrons);
+            Pub.Sleep(pub.PubOptions.PatronArriveTiming, pub.mainWindow.pauseBouncerAndPatrons);
             pub.WaitingPatrons.Enqueue(this);
             pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
 
@@ -43,7 +50,7 @@ namespace Labb6
         private void PrintPatronInfo()
         {
             if (this.patronName == "Karen")
-                pub.Log($"{patronName} enters the pub. She wants to speak to the manager!", LogBox.Patron);
+                pub.Log($"{patronName} enters the pub.\nShe wants to speak to the manager!", LogBox.Patron);
             else
                 pub.Log($"{patronName} enters the pub", LogBox.Patron);
         }
@@ -70,14 +77,13 @@ namespace Labb6
         {
             while (true)
             {
-                if (pub.TakenChairs.Count < pub.Params["NumberOfChairs"])
+                if (pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
                 {
-
-                    Pub.Sleep(pub.Params["PatronTableTiming"], pub.mainWindow.pauseBouncerAndPatrons);
-
                     lock (pub.TakenChairs)
                     {
-                        pub.TakenChairs.Add(this);
+                        Pub.Sleep(pub.PubOptions.PatronTableTiming, pub.mainWindow.pauseBouncerAndPatrons);
+                        if(pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
+                            pub.TakenChairs.Add(this);
                     }
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
@@ -89,8 +95,7 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
-
-            Pub.Sleep(new Random().Next((int)pub.Params["PatronMinDrinkTiming"], (int)pub.Params["PatronMaxDrinkTiming"]), 
+            Pub.Sleep(new Random().Next((int) pub.PubOptions.PatronMinDrinkTiming, (int) pub.PubOptions.PatronMaxDrinkTiming), 
                 pub.mainWindow.pauseBouncerAndPatrons);
 
             lock (pub.TakenChairs)
