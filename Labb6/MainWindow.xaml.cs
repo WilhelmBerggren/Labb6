@@ -31,11 +31,11 @@ namespace Labb6
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
-            timer = new DispatcherTimer();
         }
 
         private void TimerInitialization()
         {
+            timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += OnTimer_Tick;
         }
@@ -134,9 +134,9 @@ namespace Labb6
                     case "5 Minutes open":
                         BarOpenForDuration = 300;
                         break;
-                    //case "Couples night":
-                    // Not yet implemented. Bouncer creates two instances of patrons per turn.
-                    //   break;
+                    case "Couples night":
+                        pub.PubOptions.CouplesNight = true;
+                        break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
                         pub.PubOptions.BouncerMinTiming = 6000;
@@ -159,29 +159,19 @@ namespace Labb6
 
             if (newState == BarState.Close)
             {
-                //if (PatronsAreStillPresentInBar)
-                //{
-                //    Disable"OpenBar" button until bar is empty.
-                //}
-                //else (if bar is empty...)
-                //{
-                //    Let it roll...
-                //}
                 timer.Stop();
+                BarOpenForDuration = 120;
                 pub.CloseTheBar();
 
                 Task.Run(() =>
                 {
                     while (pub.TotalPresentPatrons > 0)
                     {
-
                         Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = false; });
                     }
-
                     Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = true; });
-
-
                 });
+
                 SpeedSlider.Value = 1;
                 timer = new DispatcherTimer();
                 SelectionIsMade = false;

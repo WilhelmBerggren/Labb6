@@ -20,6 +20,7 @@ namespace Labb6
         private double _PatronMinDrinkTiming;
         private double _PatronMaxDrinkTiming;
 
+
         public double BartenderGlassTiming { get { return _BartenderGlassTiming/Speed; } set { _BartenderGlassTiming = value; } }
         public double BartenderPourTiming { get { return _BartenderPourTiming/Speed; } set { _BartenderPourTiming = value; } }
         public double WaitressClearTiming { get { return _WaitressClearTiming/Speed; } set { _WaitressClearTiming = value; } }
@@ -36,6 +37,25 @@ namespace Labb6
         public bool BadGuyBouncer { get; internal set; }
         public bool CouplesNight { get; internal set; }
         public double Speed { get; internal set; }
+
+        public PubOptions()
+        {
+            BartenderGlassTiming = 3000;
+            BartenderPourTiming = 3000;
+            WaitressClearTiming = 10000;
+            WaitressPlaceTiming = 15000;
+            BouncerMinTiming = 3000;
+            BouncerMaxTiming = 10000;
+            PatronArriveTiming = 1000;
+            PatronTableTiming = 4000;
+            PatronMinDrinkTiming = 20000;
+            PatronMaxDrinkTiming = 30000;
+            NumberOfGlasses = 8;
+            NumberOfChairs = 9;
+            BadGuyBouncer = false;
+            CouplesNight = false;
+            Speed = 1;
+        }
     }
 
     public class Pub
@@ -55,26 +75,7 @@ namespace Labb6
         public Pub(MainWindow mainWindow)
         {
             this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
-
-            this.PubOptions = new PubOptions()
-            {
-                BartenderGlassTiming = 3000,
-                BartenderPourTiming = 3000,
-                WaitressClearTiming = 10000,
-                WaitressPlaceTiming = 15000,
-                BouncerMinTiming = 3000,
-                BouncerMaxTiming = 10000,
-                PatronArriveTiming = 1000,
-                PatronTableTiming = 4000,
-                PatronMinDrinkTiming = 20000,
-                PatronMaxDrinkTiming = 30000,
-                NumberOfGlasses = 8,
-                NumberOfChairs = 9,
-                BadGuyBouncer = false,
-                CouplesNight = false,
-                Speed = 1
-            };
-
+            PubOptions = new PubOptions();
             IsOpen = false;
         }
 
