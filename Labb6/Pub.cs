@@ -33,7 +33,8 @@ namespace Labb6
         public double NumberOfGlasses { get; internal set; }
         public double NumberOfChairs { get; internal set; }
 
-        public int BadGuyBouncer { get; internal set; }
+        public bool BadGuyBouncer { get; internal set; }
+        public bool CouplesNight { get; internal set; }
         public double Speed { get; internal set; }
     }
 
@@ -67,7 +68,8 @@ namespace Labb6
                 PatronMaxDrinkTiming = 30000,
                 NumberOfGlasses = 8,
                 NumberOfChairs = 9,
-                BadGuyBouncer = 0,
+                BadGuyBouncer = false,
+                CouplesNight = false,
                 Speed = 1
             };
 

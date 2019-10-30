@@ -18,7 +18,6 @@ namespace Labb6
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
 
-
         DispatcherTimer timer;
         private bool SelectionIsMade = false;
         public int BarOpenForDuration { get; set; } = 120; // given in seconds. default value == 120 sec (2min)
@@ -69,7 +68,6 @@ namespace Labb6
                 Pause_BartenderButton.Content = "Pause";
             }
         }
-
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e)
         {
             if (Pause_WaitressButton.Content.ToString() == "Pause")
@@ -142,7 +140,7 @@ namespace Labb6
                         pub = new Pub(this);
                         pub.PubOptions.BouncerMinTiming = 6000;
                         pub.PubOptions.BouncerMaxTiming = 20000;
-                        pub.PubOptions.BadGuyBouncer = 1;
+                        pub.PubOptions.BadGuyBouncer = true;
                         SetBarState(BarState.Open);
                     break;
                     default:
