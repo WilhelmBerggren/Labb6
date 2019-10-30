@@ -112,7 +112,7 @@ namespace Labb6
                         SetBarState(BarState.Open);
                         break;
                     case "5 Minutes open":
-                        BarOpenForDuration = 300;
+                        pub.TimeUntilClosing = 300;
                         break;
                     case "Couples night":
                         pub.Options.CouplesNight = true;
