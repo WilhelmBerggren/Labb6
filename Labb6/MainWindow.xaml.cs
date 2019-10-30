@@ -120,16 +120,16 @@ namespace Labb6
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.PubOptions.PatronArriveTiming = 2;
-                        pub.PubOptions.PatronTableTiming = 8;
-                        pub.PubOptions.PatronMinDrinkTiming = 20;
-                        pub.PubOptions.PatronMaxDrinkTiming = 40;
+                        pub.PubOptions.PatronArriveTiming = 2000;
+                        pub.PubOptions.PatronTableTiming = 8000;
+                        pub.PubOptions.PatronMinDrinkTiming = 20000;
+                        pub.PubOptions.PatronMaxDrinkTiming = 40000;
                         SetBarState(BarState.Open);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.PubOptions.WaitressClearTiming = 5;
-                        pub.PubOptions.WaitressPlaceTiming = 7.5;
+                        pub.PubOptions.WaitressClearTiming = 5000;
+                        pub.PubOptions.WaitressPlaceTiming = 7500;
                         SetBarState(BarState.Open);
                         break;
                     //case "5 Minutes open":
@@ -140,8 +140,8 @@ namespace Labb6
                     //   break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
-                        pub.PubOptions.BouncerMinTiming = 6;
-                        pub.PubOptions.BouncerMaxTiming = 20;
+                        pub.PubOptions.BouncerMinTiming = 6000;
+                        pub.PubOptions.BouncerMaxTiming = 20000;
                         pub.PubOptions.BadGuyBouncer = 1;
                         SetBarState(BarState.Open);
                     break;
@@ -222,8 +222,18 @@ namespace Labb6
             }
         }
 
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (pub != null)
+            {
+                this.pub.PubOptions.Speed = SpeedSlider.Value;
+                SpeedLabel.Content = Math.Round(SpeedSlider.Value, 1);
+            }
+        }
+
         public void LogEvent(string text, LogBox textblock)
         {
+            Console.WriteLine(textblock + ": " + text);
             switch (textblock)
             {
                 case LogBox.Event:
@@ -238,14 +248,6 @@ namespace Labb6
                 case LogBox.Waitress:
                     this.Dispatcher.Invoke(() => WaitressListBox.Items.Insert(0, text));
                     break;
-            }
-        }
-
-        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if(pub != null)
-            {
-                this.pub.PubOptions.Speed = SpeedSlider.Value;
             }
         }
     }

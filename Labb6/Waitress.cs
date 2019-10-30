@@ -14,7 +14,7 @@ namespace Labb6
             glasses = new Stack<Glass>();
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
 
-            while (pub.IsOpen || pub.Table.Count > 0)
+            while (pub.IsOpen || pub.WaitingPatrons.Count > 0 || pub.Table.Count > 0)
             {
                 TakeEmptyGlasses();
                 PlaceGlass();

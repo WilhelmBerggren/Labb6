@@ -42,7 +42,7 @@ namespace Labb6
             Thread.Sleep((int)pub.PubOptions.PatronArriveTiming);
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
             pub.WaitingPatrons.Enqueue(this);
-            pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
+            pub.Log($"{patronName} is waiting to be served", LogBox.Patron);
 
             WaitForGlass();
             WaitForTable();
@@ -77,6 +77,8 @@ namespace Labb6
 
         private void WaitForTable()
         {
+            pub.Log($"{patronName} is waiting to be seated", LogBox.Patron);
+
             while (true)
             {
                 if (pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
