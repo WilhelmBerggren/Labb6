@@ -33,7 +33,6 @@
             <ComboBoxItem>Couples night</ComboBoxItem>
             <ComboBoxItem>Bouncer is a jerk</ComboBoxItem>
         </ComboBox>
-        <Label Name="timerLabel" Content="Label" HorizontalAlignment="Left" Height="26" VerticalAlignment="Top" Margin="114,6,0,0" Grid.Row="1" Width="161"/>
 
     </Grid>
 </Window>

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Threading;
+﻿using System.Threading;
 using System.Windows;
-using System.Threading.Tasks;
 
 namespace Labb6
 {
@@ -18,10 +15,6 @@ namespace Labb6
         internal ManualResetEvent pauseWaitress;
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
-        private DispatcherTimer timer;
-        private TimeSpan time;
-        public TimeSpan Time { get; set; }
-
 
         private bool SelectionIsMade = false;
 
@@ -33,21 +26,6 @@ namespace Labb6
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
-        }
-
-        private void BarOpenTimer(int minutes)
-        {
-            time = new TimeSpan(0, minutes, 0);
-            timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
-                { 
-                    timerLabel.Content = time.ToString("c");
-                    if (time == TimeSpan.Zero)
-                        timer.Stop();
-
-                    time = time.Add(TimeSpan.FromSeconds(-1));                    
-                }, Application.Current.Dispatcher);
-
-            timer.Start();            
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
@@ -163,7 +141,6 @@ namespace Labb6
                 //    Let it roll...
                 //}
                 pub.CloseTheBar();
-                timer.Stop();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
@@ -177,7 +154,6 @@ namespace Labb6
             }
             else
             {
-                BarOpenTimer(2);
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
                 WaitressListBox.Items.Clear();
