@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -27,11 +28,11 @@ namespace Labb6
 
         public MainWindow()
         {
-            timer = new DispatcherTimer();
             InitializeComponent();
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
+            timer = new DispatcherTimer();
         }
 
         private void TimerInitialization()
@@ -120,28 +121,28 @@ namespace Labb6
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.PubOptions.PatronArriveTiming = 2;
-                        pub.PubOptions.PatronTableTiming = 8;
-                        pub.PubOptions.PatronMinDrinkTiming = 20;
-                        pub.PubOptions.PatronMaxDrinkTiming = 40;
+                        pub.PubOptions.PatronArriveTiming = 2000;
+                        pub.PubOptions.PatronTableTiming = 8000;
+                        pub.PubOptions.PatronMinDrinkTiming = 20000;
+                        pub.PubOptions.PatronMaxDrinkTiming = 40000;
                         SetBarState(BarState.Open);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.PubOptions.WaitressClearTiming = 5;
-                        pub.PubOptions.WaitressPlaceTiming = 7.5;
+                        pub.PubOptions.WaitressClearTiming = 5000;
+                        pub.PubOptions.WaitressPlaceTiming = 7500;
                         SetBarState(BarState.Open);
                         break;
-                    //case "5 Minutes open":
-                    //  Not yet implemented countdown.
-                    //   break;
+                    case "5 Minutes open":
+                        BarOpenForDuration = 300;
+                        break;
                     //case "Couples night":
                     // Not yet implemented. Bouncer creates two instances of patrons per turn.
                     //   break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
-                        pub.PubOptions.BouncerMinTiming = 6;
-                        pub.PubOptions.BouncerMaxTiming = 20;
+                        pub.PubOptions.BouncerMinTiming = 6000;
+                        pub.PubOptions.BouncerMaxTiming = 20000;
                         pub.PubOptions.BadGuyBouncer = 1;
                         SetBarState(BarState.Open);
                     break;
@@ -170,6 +171,20 @@ namespace Labb6
                 //}
                 timer.Stop();
                 pub.CloseTheBar();
+
+                Task.Run(() =>
+                {
+                    while (pub.TotalPresentPatrons > 0)
+                    {
+
+                        Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = false; });
+                    }
+
+                    Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = true; });
+
+
+                });
+                SpeedSlider.Value = 1;
                 timer = new DispatcherTimer();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
@@ -185,6 +200,7 @@ namespace Labb6
             else
             {
                 TimerInitialization();
+                SpeedSlider.Value = 1;
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
                 WaitressListBox.Items.Clear();
@@ -192,6 +208,7 @@ namespace Labb6
                 tokenSource = new CancellationTokenSource();
                 token = tokenSource.Token;
                 pub.OpenTheBar();
+                timer.Stop();
                 timer.Start();
                 SelectionIsMade = true;
                 ToggleBarOpenButton.Content = "Close bar";

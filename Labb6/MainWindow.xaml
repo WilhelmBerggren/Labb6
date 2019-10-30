@@ -22,7 +22,7 @@
         <Button Content="Pause" Name="Pause_GuestsButton" Click="Pause_Guests_Click" IsEnabled="false" HorizontalAlignment="Left" Margin="325,354,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Open bar" Name="ToggleBarOpenButton" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="171,378,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
         <Button Content="Panic! Pause all threads!" Name="PanicButton" IsEnabled="true" Click="Panic_Click" HorizontalAlignment="Left" Margin="486,378,0,0" VerticalAlignment="Top" Width="157" Grid.Row="1"/>
-        <ListBox Name="EventListBox" HorizontalAlignment="Left" Margin="430,37,0,0" VerticalAlignment="Top" Height="310" Width="301" Grid.Row="1"/>
+        <ListBox Name="EventListBox" HorizontalAlignment="Left" Margin="430,37,0,0" VerticalAlignment="Top" Height="310" Width="343" Grid.Row="1"/>
         <ComboBox Name="TestCase" HorizontalAlignment="Left" Margin="46,378,0,0" Grid.Row="1" VerticalAlignment="Top" Width="120" Height="19">
             <ComboBoxItem IsSelected="True">Default</ComboBoxItem>
             <ComboBoxItem>20 Glasses, 3 chairs</ComboBoxItem>

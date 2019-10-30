@@ -43,7 +43,7 @@ namespace Labb6
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
             pub.WaitingPatrons.Enqueue(this);
             pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
-
+            pub.TotalPresentPatrons++;
             WaitForGlass();
             WaitForTable();
             DrinkAndLeave();
@@ -98,11 +98,13 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
+            pub.Log($"{patronName} enjoys the drink...", LogBox.Patron);
             Thread.Sleep(new Random().Next((int)pub.PubOptions.PatronMinDrinkTiming, (int)pub.PubOptions.PatronMaxDrinkTiming));
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
             lock (pub.TakenChairs)
             {
+                pub.TotalPresentPatrons--;
                 pub.TakenChairs.Remove(this);
                 pub.Table.Push(glass);
                 pub.Log($"{patronName} left", LogBox.Patron);

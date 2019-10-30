@@ -47,6 +47,8 @@ namespace Labb6
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
+        public int TotalPresentPatrons { get; internal set; }
+
         public PubOptions PubOptions;
 
         public Pub(MainWindow mainWindow)
@@ -55,16 +57,16 @@ namespace Labb6
 
             this.PubOptions = new PubOptions()
             {
-                BartenderGlassTiming = 3,
-                BartenderPourTiming = 3,
-                WaitressClearTiming = 10,
-                WaitressPlaceTiming = 15,
-                BouncerMinTiming = 3,
-                BouncerMaxTiming = 10,
-                PatronArriveTiming = 1,
-                PatronTableTiming = 4,
-                PatronMinDrinkTiming = 20,
-                PatronMaxDrinkTiming = 30,
+                BartenderGlassTiming = 3000,
+                BartenderPourTiming = 3000,
+                WaitressClearTiming = 10000,
+                WaitressPlaceTiming = 15000,
+                BouncerMinTiming = 3000,
+                BouncerMaxTiming = 10000,
+                PatronArriveTiming = 1000,
+                PatronTableTiming = 4000,
+                PatronMinDrinkTiming = 20000,
+                PatronMaxDrinkTiming = 30000,
                 NumberOfGlasses = 8,
                 NumberOfChairs = 9,
                 BadGuyBouncer = 0,
@@ -110,8 +112,8 @@ namespace Labb6
                     if (mainWindow.token.IsCancellationRequested)
                         return;
 
-                    Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
                     Thread.Sleep(1000);
+                    Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
                 };
             }, mainWindow.token);
         }

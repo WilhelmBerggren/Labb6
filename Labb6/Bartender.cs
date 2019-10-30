@@ -38,7 +38,8 @@ namespace Labb6
 
         private void WaitForPatronsToLeave()
         {
-            while(pub.BarDisk.Count + pub.WaitingPatrons.Count + pub.TakenChairs.Count > 0) { /*block*/ }
+            while (pub.TotalPresentPatrons > 0) { }
+            //while(pub.BarDisk.Count + pub.WaitingPatrons.Count + pub.TakenChairs.Count > 0) { /*block*/ }
             pub.Log("Went home", LogBox.Bartender);
         }
 
@@ -58,7 +59,7 @@ namespace Labb6
 
         private Glass WaitForGlass()
         {
-            while (pub.WaitingPatrons.Count > 0)
+            while (pub.WaitingPatrons.Count >= 0)
             {
                 pub.mainWindow.pauseBartender.WaitOne();
                 if (pub.Shelf.TryPeek(out _))

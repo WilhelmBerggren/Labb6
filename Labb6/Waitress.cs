@@ -14,7 +14,7 @@ namespace Labb6
             glasses = new Stack<Glass>();
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
 
-            while (pub.IsOpen || pub.Table.Count > 0)
+            while (pub.Shelf.Count != pub.PubOptions.NumberOfGlasses || pub.TotalPresentPatrons > 0)
             {
                 TakeEmptyGlasses();
                 PlaceGlass();
@@ -24,7 +24,7 @@ namespace Labb6
 
         private void WaitForPatronsToLeave()
         {
-            while (pub.WaitingPatrons.Count + pub.TakenChairs.Count > 0) { /*block*/ }
+            //while (pub.WaitingPatrons.Count + pub.TakenChairs.Count > 0) { /*block*/ }
             pub.Log("Went home", LogBox.Waitress);
         }
 
