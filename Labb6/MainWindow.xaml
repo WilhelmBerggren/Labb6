@@ -34,6 +34,7 @@
             <ComboBoxItem>Bouncer is a jerk</ComboBoxItem>
         </ComboBox>
         <Label Name="timerLabel" Content="" HorizontalAlignment="Left" Margin="220,10,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+        <Slider Name="SpeedSlider" Value="1" Maximum="10" Minimum="0.1" HorizontalAlignment="Left" Margin="486,354,0,0" Grid.Row="1" VerticalAlignment="Top" Width="157" ValueChanged="Slider_ValueChanged"/>
 
     </Grid>
 </Window>

@@ -26,18 +26,24 @@ namespace Labb6
 
         private void NiceGuyBouncer(Random random)
         {
-            Pub.WhileOpen(pub, () =>
+            while (pub.IsOpen)
             {
+                if (pub.mainWindow.token.IsCancellationRequested)
+                    return;
+
                 int wait = random.Next((int)pub.PubOptions.BouncerMinTiming, (int)pub.PubOptions.BouncerMaxTiming);
-                Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
+                Thread.Sleep(wait);
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 pub.RunAsTask(() => _ = new Patron(pub));
-            });
+            }
         }
 
         private void BadGuyBouncer(Random random)
         {
-            Pub.WhileOpen(pub, () =>
+            while (pub.IsOpen)
             {
+                if (pub.mainWindow.token.IsCancellationRequested)
+                    return;
 
                 if (pub.mainWindow.BarOpenForDuration <= 100 && pub.mainWindow.BarOpenForDuration > 90)
                 {
@@ -49,10 +55,11 @@ namespace Labb6
                 else
                 {
                     int wait = random.Next((int)pub.PubOptions.BouncerMinTiming, (int)pub.PubOptions.BouncerMaxTiming);
-                    Pub.Sleep(wait, pub.mainWindow.pauseBouncerAndPatrons);
+                    Thread.Sleep(wait);
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                     pub.RunAsTask(() => _ = new Patron(pub));
                 }
-            });
+            }
         }
     }
 }

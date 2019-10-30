@@ -240,6 +240,14 @@ namespace Labb6
                     break;
             }
         }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if(pub != null)
+            {
+                this.pub.PubOptions.Speed = SpeedSlider.Value;
+            }
+        }
     }
 
     public class Glass { }

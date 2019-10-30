@@ -34,11 +34,13 @@ namespace Labb6
 
         public Patron(Pub pub)
         {
-            this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
+            this.pub = pub;
             this.patronName = Name.GetName();
 
             PrintPatronInfo();
-            Pub.Sleep(pub.PubOptions.PatronArriveTiming, pub.mainWindow.pauseBouncerAndPatrons);
+            //Pub.Sleep(pub.PubOptions.PatronArriveTiming, pub.mainWindow.pauseBouncerAndPatrons);
+            Thread.Sleep((int)pub.PubOptions.PatronArriveTiming);
+            pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
             pub.WaitingPatrons.Enqueue(this);
             pub.Log("Number of Waiting Patrons: " + pub.WaitingPatrons.Count, LogBox.Waitress);
 
@@ -81,7 +83,8 @@ namespace Labb6
                 {
                     lock (pub.TakenChairs)
                     {
-                        Pub.Sleep(pub.PubOptions.PatronTableTiming, pub.mainWindow.pauseBouncerAndPatrons);
+                        Thread.Sleep((int)pub.PubOptions.PatronTableTiming);
+                        pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                         if(pub.TakenChairs.Count < pub.PubOptions.NumberOfChairs)
                             pub.TakenChairs.Add(this);
                     }
@@ -95,8 +98,8 @@ namespace Labb6
 
         private void DrinkAndLeave()
         {
-            Pub.Sleep(new Random().Next((int) pub.PubOptions.PatronMinDrinkTiming, (int) pub.PubOptions.PatronMaxDrinkTiming), 
-                pub.mainWindow.pauseBouncerAndPatrons);
+            Thread.Sleep(new Random().Next((int)pub.PubOptions.PatronMinDrinkTiming, (int)pub.PubOptions.PatronMaxDrinkTiming));
+            pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
             lock (pub.TakenChairs)
             {
