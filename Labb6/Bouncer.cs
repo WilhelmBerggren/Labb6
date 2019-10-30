@@ -17,7 +17,7 @@ namespace Labb6
                 if (pub.mainWindow.token.IsCancellationRequested)
                     return;
 
-                int wait = random.Next((int)pub.PubOptions.BouncerMinTiming, (int)pub.PubOptions.BouncerMaxTiming);
+                int wait = random.Next((int)pub.Options.BouncerMinTiming, (int)pub.Options.BouncerMaxTiming);
                 Thread.Sleep(wait);
                 pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 CreatePatron();
@@ -26,11 +26,11 @@ namespace Labb6
 
         private void CreatePatron()
         {
-            if(pub.PubOptions.BadGuyBouncer)
+            if(pub.Options.BadGuyBouncer)
             {
                 if (pub.mainWindow.BarOpenForDuration <= 100)
                 {
-                    pub.PubOptions.BadGuyBouncer = false;
+                    pub.Options.BadGuyBouncer = false;
                     pub.Log("Oh shit, a bus full of tourists", LogBox.Event);
                     for (int i = 0; i < 15; i++)
                     {
@@ -42,7 +42,7 @@ namespace Labb6
                     Task.Run(() => new Patron(pub), pub.mainWindow.token);
                 }
             }
-            else if(pub.PubOptions.CouplesNight)
+            else if(pub.Options.CouplesNight)
             {
                 Task.Run(() => new Patron(pub), pub.mainWindow.token);
                 Task.Run(() => new Patron(pub), pub.mainWindow.token);

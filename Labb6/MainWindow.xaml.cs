@@ -19,7 +19,7 @@ namespace Labb6
         internal CancellationTokenSource tokenSource;
         internal CancellationToken token;
 
-        DispatcherTimer timer;
+        //DispatcherTimer timer;
         private bool SelectionIsMade = false;
         public int BarOpenForDuration { get; set; } = 120; // given in seconds. default value == 120 sec (2min)
 
@@ -31,29 +31,6 @@ namespace Labb6
             pauseBouncerAndPatrons = new ManualResetEvent(true);
             pauseBartender = new ManualResetEvent(true);
             pauseWaitress = new ManualResetEvent(true);
-        }
-
-        private void TimerInitialization()
-        {
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += OnTimer_Tick;
-        }
-
-        private void OnTimer_Tick(object sender, EventArgs e)
-        {
-            if (BarOpenForDuration == 0)
-            {
-                timer.Stop();
-                pub.IsOpen = false;
-                timerLabel.Content = "00:00";
-            }
-            else
-            {
-                DateTime TimerStartTime = DateTime.Now;
-                timerLabel.Content = (TimeSpan.FromSeconds(BarOpenForDuration) - (DateTime.Now - TimerStartTime)).ToString("mm\\:ss");
-                BarOpenForDuration--;
-            }
         }
 
         private void Pause_Bartender_Click(object sender, RoutedEventArgs e)
@@ -69,6 +46,7 @@ namespace Labb6
                 Pause_BartenderButton.Content = "Pause";
             }
         }
+
         private void Pause_Waitress_Click(object sender, RoutedEventArgs e)
         {
             if (Pause_WaitressButton.Content.ToString() == "Pause")
@@ -82,6 +60,7 @@ namespace Labb6
                 Pause_WaitressButton.Content = "Pause";
             }
         }
+
         private void Pause_Guests_Click(object sender, RoutedEventArgs e)
         {
             if (Pause_GuestsButton.Content.ToString() == "Pause")
@@ -95,6 +74,7 @@ namespace Labb6
                 Pause_GuestsButton.Content = "Pause";
             }
         }
+
         private void ToggleBarOpen_Click(object sender, RoutedEventArgs e)
         {
             if (SelectionIsMade == false)
@@ -107,41 +87,41 @@ namespace Labb6
                         break;
                     case "20 Glasses, 3 chairs":
                         pub = new Pub(this);
-                        pub.PubOptions.NumberOfGlasses = 20;
-                        pub.PubOptions.NumberOfChairs = 3;
+                        pub.Options.NumberOfGlasses = 20;
+                        pub.Options.NumberOfChairs = 3;
                         SetBarState(BarState.Open);
                         break;
                     case "20 Chairs, 5 Glasses":
                         pub = new Pub(this);
-                        pub.PubOptions.NumberOfChairs = 20;
-                        pub.PubOptions.NumberOfGlasses = 5;
+                        pub.Options.NumberOfChairs = 20;
+                        pub.Options.NumberOfGlasses = 5;
                         SetBarState(BarState.Open);
                         break;
                     case "Double Stay (Patrons)":
                         pub = new Pub(this);
-                        pub.PubOptions.PatronArriveTiming = 2000;
-                        pub.PubOptions.PatronTableTiming = 8000;
-                        pub.PubOptions.PatronMinDrinkTiming = 20000;
-                        pub.PubOptions.PatronMaxDrinkTiming = 40000;
+                        pub.Options.PatronArriveTiming = 2000;
+                        pub.Options.PatronTableTiming = 8000;
+                        pub.Options.PatronMinDrinkTiming = 20000;
+                        pub.Options.PatronMaxDrinkTiming = 40000;
                         SetBarState(BarState.Open);
                         break;
                     case "Double Speed Waitress":
                         pub = new Pub(this);
-                        pub.PubOptions.WaitressClearTiming = 5000;
-                        pub.PubOptions.WaitressPlaceTiming = 7500;
+                        pub.Options.WaitressClearTiming = 5000;
+                        pub.Options.WaitressPlaceTiming = 7500;
                         SetBarState(BarState.Open);
                         break;
                     case "5 Minutes open":
                         BarOpenForDuration = 300;
                         break;
                     case "Couples night":
-                        pub.PubOptions.CouplesNight = true;
+                        pub.Options.CouplesNight = true;
                         break;
                     case "Bouncer is a jerk":
                         pub = new Pub(this);
-                        pub.PubOptions.BouncerMinTiming = 6000;
-                        pub.PubOptions.BouncerMaxTiming = 20000;
-                        pub.PubOptions.BadGuyBouncer = true;
+                        pub.Options.BouncerMinTiming = 6000;
+                        pub.Options.BouncerMaxTiming = 20000;
+                        pub.Options.BadGuyBouncer = true;
                         SetBarState(BarState.Open);
                     break;
                     default:
@@ -159,9 +139,8 @@ namespace Labb6
 
             if (newState == BarState.Close)
             {
-                timer.Stop();
                 BarOpenForDuration = 120;
-                pub.CloseTheBar();
+                pub.Close();
 
                 Task.Run(() =>
                 {
@@ -173,7 +152,7 @@ namespace Labb6
                 });
 
                 SpeedSlider.Value = 1;
-                timer = new DispatcherTimer();
+                //timer = new DispatcherTimer();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
@@ -187,7 +166,6 @@ namespace Labb6
             }
             else
             {
-                TimerInitialization();
                 SpeedSlider.Value = 1;
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
@@ -195,9 +173,7 @@ namespace Labb6
                 EventListBox.Items.Clear();
                 tokenSource = new CancellationTokenSource();
                 token = tokenSource.Token;
-                pub.OpenTheBar();
-                timer.Stop();
-                timer.Start();
+                pub.Open();
                 SelectionIsMade = true;
                 ToggleBarOpenButton.Content = "Close bar";
                 LogEvent("TestCase: " + TestCase.SelectedValue.ToString().Substring(38), LogBox.Event);
@@ -231,7 +207,7 @@ namespace Labb6
         {
             if (pub != null)
             {
-                this.pub.PubOptions.Speed = SpeedSlider.Value;
+                this.pub.Options.Speed = SpeedSlider.Value;
                 SpeedLabel.Content = Math.Round(SpeedSlider.Value, 1);
             }
         }
@@ -254,6 +230,10 @@ namespace Labb6
                     this.Dispatcher.Invoke(() => WaitressListBox.Items.Insert(0, text));
                     break;
             }
+        }
+        public void PrintTime(string text)
+        {
+            this.Dispatcher.Invoke(() => timerLabel.Content = text);
         }
     }
 

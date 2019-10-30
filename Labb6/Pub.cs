@@ -18,33 +18,35 @@ namespace Labb6
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public int TotalPresentPatrons { get; internal set; }
-
-        public PubOptions PubOptions;
+        public PubOptions Options;
+        public int TimeUntilClosing { get; set; }
 
         public Pub(MainWindow mainWindow)
         {
             this.mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
 
-            this.PubOptions = new PubOptions();
+            Options = new PubOptions();
+            TimeUntilClosing = 120;
 
             IsOpen = false;
         }
 
-        public void OpenTheBar()
+        public void Open()
         {
             IsOpen = true;
             Table = new ConcurrentStack<Glass>();
             WaitingPatrons = new ConcurrentQueue<Patron>();
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
-            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)PubOptions.NumberOfGlasses).Select(i => new Glass()));
+            Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)Options.NumberOfGlasses).Select(i => new Glass()));
             InfoPrinter();
+            CountDown();
             Task.Run(() => new Bouncer(this), mainWindow.token);
             Task.Run(() => new Bartender(this), mainWindow.token);
             Task.Run(() => new Waitress(this), mainWindow.token);
         }
 
-        public void CloseTheBar()
+        public void Close()
         {
             IsOpen = false;
             mainWindow.tokenSource.Cancel();
@@ -69,6 +71,25 @@ namespace Labb6
                     Thread.Sleep(1000);
                     Log($"Taken chairs: {TakenChairs.Count}, Waiting Patrons: {WaitingPatrons.Count}, Glasses: {Shelf.Count}", LogBox.Event);
                 };
+            }, mainWindow.token);
+        }
+
+        private void CountDown()
+        {
+            Task.Run(() => 
+            {
+                while(this.IsOpen && TimeUntilClosing > 0)
+                {
+                    if (mainWindow.token.IsCancellationRequested)
+                        return;
+
+                    Thread.Sleep((int)(1000/Options.Speed));
+                    this.TimeUntilClosing--;
+                    string time = $"{TimeUntilClosing / 60}:{TimeUntilClosing % 60}";
+                    mainWindow.PrintTime(time);
+                    Console.WriteLine(TimeUntilClosing + ", " + time);
+                }
+                Close();
             }, mainWindow.token);
         }
     }
