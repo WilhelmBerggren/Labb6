@@ -123,7 +123,7 @@ namespace Labb6
                         pub.Options.BouncerMaxTiming = 20000;
                         pub.Options.BadGuyBouncer = true;
                         SetBarState(BarState.Open);
-                    break;
+                        break;
                     default:
                         break;
                 }
@@ -145,14 +145,12 @@ namespace Labb6
                 Task.Run(() =>
                 {
                     while (pub.TotalPresentPatrons > 0)
-                    {
                         Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = false; });
-                    }
-                    Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = true; });
+
                 });
 
+                ToggleBarOpenButton.IsEnabled = true;
                 SpeedSlider.Value = 1;
-                //timer = new DispatcherTimer();
                 SelectionIsMade = false;
                 Pause_GuestsButton.Content = "Pause";
                 Pause_GuestsButton.IsEnabled = false;
@@ -184,8 +182,6 @@ namespace Labb6
             }
         }
 
-        // Medveten om att den kanske bör "stoppa" alla trådar perma och inte pausa,
-        // men detta kan funka tills det är löst.
         private void Panic_Click(object sender, RoutedEventArgs e)
         {
             if (pub == null)
@@ -221,7 +217,7 @@ namespace Labb6
                     this.Dispatcher.Invoke(() => EventListBox.Items.Insert(0, text));
                     break;
                 case LogBox.Bartender:
-                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text ));
+                    this.Dispatcher.Invoke(() => BartenderListBox.Items.Insert(0, text));
                     break;
                 case LogBox.Patron:
                     this.Dispatcher.Invoke(() => PatronListBox.Items.Insert(0, text));

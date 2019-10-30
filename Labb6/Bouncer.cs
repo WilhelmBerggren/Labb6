@@ -31,7 +31,7 @@ namespace Labb6
                 if (pub.mainWindow.BarOpenForDuration <= 100)
                 {
                     pub.Options.BadGuyBouncer = false;
-                    pub.Log("Oh shit, a bus full of tourists", LogBox.Event);
+                    pub.Log("Oh shit, a bus full of tourists!", LogBox.Event);
                     for (int i = 0; i < 15; i++)
                     {
                         Task.Run(() => new Patron(pub), pub.mainWindow.token);

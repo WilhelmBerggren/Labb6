@@ -24,7 +24,7 @@
         public double PatronMinDrinkTiming { get { return _PatronMinDrinkTiming/Speed; } set { _PatronMinDrinkTiming = value; } }
         public double PatronMaxDrinkTiming { get { return _PatronMaxDrinkTiming/Speed; } set { _PatronMaxDrinkTiming = value; } }
         public double NumberOfGlasses { get; internal set; }
-        public double NumberOfChairs { get; internal set; }
+        public double MaxNumberOfChairs { get; internal set; }
 
         public bool BadGuyBouncer { get; internal set; }
         public bool CouplesNight { get; internal set; }
@@ -43,7 +43,7 @@
             PatronMinDrinkTiming = 20000;
             PatronMaxDrinkTiming = 30000;
             NumberOfGlasses = 8;
-            NumberOfChairs = 9;
+            MaxNumberOfChairs = 9;
             BadGuyBouncer = false;
             CouplesNight = false;
             Speed = 1;
