@@ -64,6 +64,7 @@
     </ApplicationDefinition>
     <Compile Include="Bouncer.cs" />
     <Compile Include="Pub.cs" />
+    <Compile Include="PubOptions.cs" />
     <Compile Include="Waitress.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

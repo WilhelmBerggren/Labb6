@@ -38,7 +38,6 @@ namespace Labb6
             this.patronName = Name.GetName();
             Console.WriteLine($"{patronName} arrived");
             PrintPatronInfo();
-            //Pub.Sleep(pub.PubOptions.PatronArriveTiming, pub.mainWindow.pauseBouncerAndPatrons);
             Thread.Sleep((int)pub.PubOptions.PatronArriveTiming);
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
             pub.WaitingPatrons.Enqueue(this);
