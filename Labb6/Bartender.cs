@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Labb6
 {
@@ -10,34 +11,43 @@ namespace Labb6
         Patron currentPatron;
         public Bartender(Pub pub)
         {
-            this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-            while (pub.IsOpen || pub.WaitingPatrons.Count > 0)
-            {
-                if (currentPatron == null)
-                    currentPatron = WaitForPatron();
-                else
+            this.pub = pub;
+        }
+
+        public void Run() {
+            pub.Log("Arrived", LogBox.Bartender);
+
+            Task.Run(() => 
+            { 
+                while (pub.IsOpen || pub.TotalPresentPatrons > 0)
                 {
-                    currentGlass = WaitForGlass();
-                    if (currentGlass != null)
+                    if (currentPatron == null)
+                        currentPatron = WaitForPatron();
+                    else
                     {
-                        pub.Log("Got glass and pouring beer...", LogBox.Bartender);
-                        Thread.Sleep((int)pub.Options.BartenderPourTiming);
-                        pub.mainWindow.pauseBartender.WaitOne();
-                        lock (pub.BarDisk)
+                        currentGlass = WaitForGlass();
+                        if (currentGlass != null)
                         {
-                            pub.BarDisk.Add(currentPatron, currentGlass);
-                            currentPatron = null;
-                            currentGlass = null;
+                            pub.Log("Got glass and pouring beer...", LogBox.Bartender);
+                            Thread.Sleep((int)pub.Options.BartenderPourTiming);
+                            pub.mainWindow.pauseBartender.WaitOne();
+                            lock (pub.BarDisk)
+                            {
+                                pub.BarDisk.Add(currentPatron, currentGlass);
+                                currentPatron = null;
+                                currentGlass = null;
+                            }
                         }
                     }
-                }
 
-            }
-            WaitForPatronsAndLoveInterestWaitress();
+                }
+                WaitForPatronsAndLoveInterestWaitress();
+            }, pub.mainWindow.token);
         }
 
         private void WaitForPatronsAndLoveInterestWaitress()
         {
+            pub.Log("Waiting for patrons to leave", LogBox.Waitress);
             while (pub.TotalPresentPatrons > 0 || pub.WaitressIsPresent) { }
             pub.Log("Left the bar together with the woman of his dreams, the Waitress...\n", LogBox.Bartender);
             pub.BartenderIsPresent = false;

@@ -7,49 +7,56 @@ namespace Labb6
     public class Bouncer
     {
         private readonly Pub pub;
+        private Random random;
         public Bouncer(Pub pub)
         {
             this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-            Random random = new Random();
+            this.random = new Random();
+        }
 
-            while (pub.IsOpen)
+        public void Run() {
+            Task.Run(() =>
             {
-                if (pub.mainWindow.token.IsCancellationRequested)
-                    return;
+                while (pub.IsOpen)
+                {
+                    if (pub.mainWindow.token.IsCancellationRequested)
+                        return;
 
-                int wait = random.Next((int)pub.Options.BouncerMinTiming, (int)pub.Options.BouncerMaxTiming);
-                Thread.Sleep(wait);
-                pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
-                CreatePatron();
-            }
+                    int wait = random.Next((int)pub.Options.BouncerMinTiming, (int)pub.Options.BouncerMaxTiming);
+                    Thread.Sleep(wait);
+                    pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
+                    CreatePatron();
+                }
+            });
         }
 
         private void CreatePatron()
         {
             if(pub.Options.BadGuyBouncer)
             {
-                if (pub.mainWindow.BarOpenForDuration <= 100)
+                if (pub.TimeUntilClosing <= 100)
                 {
                     pub.Options.BadGuyBouncer = false;
                     pub.Log("Oh shit, a bus full of tourists!", LogBox.Event);
+
                     for (int i = 0; i < 15; i++)
                     {
-                        Task.Run(() => new Patron(pub), pub.mainWindow.token);
+                        new Patron(pub).Run();
                     }
                 }
                 else
                 {
-                    Task.Run(() => new Patron(pub), pub.mainWindow.token);
+                    new Patron(pub).Run();
                 }
             }
             else if(pub.Options.CouplesNight)
             {
-                Task.Run(() => new Patron(pub), pub.mainWindow.token);
-                Task.Run(() => new Patron(pub), pub.mainWindow.token);
+                new Patron(pub).Run();
+                new Patron(pub).Run();
             }
             else
             {
-                Task.Run(() => new Patron(pub), pub.mainWindow.token);
+                new Patron(pub).Run();
             }
         }
     }

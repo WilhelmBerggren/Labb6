@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Labb6
 {
@@ -12,22 +13,21 @@ namespace Labb6
         public Waitress(Pub pub)
         {
             glasses = new Stack<Glass>();
-            this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
-
-            while (pub.IsOpen || pub.Shelf.Count != pub.Options.NumberOfGlasses || pub.TotalPresentPatrons > 0)
-            {
-                TakeEmptyGlasses();
-                PlaceGlass();
-            }
-            WaitForPatronsAndFriendzonedBartender();
+            this.pub = pub;
         }
 
-        private void WaitForPatronsAndFriendzonedBartender()
-        {
-            while (pub.TotalPresentPatrons > 0) { }
-            pub.Log("Left the bar with her best friend, the bartender.\n", LogBox.Waitress);
-            pub.WaitressIsPresent = false;
-            pub.Close();
+        public void Run() {
+            pub.Log("Arrived", LogBox.Waitress);
+            Task.Run(() =>
+            {
+                while (pub.IsOpen || pub.Shelf.Count != pub.Options.NumberOfGlasses || pub.TotalPresentPatrons > 0)
+                {
+                    TakeEmptyGlasses();
+                    PlaceGlass();
+                }
+                pub.Log("Left the bar with her best friend, the bartender.\n", LogBox.Waitress);
+                pub.WaitressIsPresent = false;
+            }, pub.mainWindow.token);
         }
 
         private void TakeEmptyGlasses()

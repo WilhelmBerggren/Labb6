@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Labb6
 {
@@ -36,17 +37,22 @@ namespace Labb6
         {
             this.pub = pub;
             this.patronName = Name.GetName();
-            pub.TotalPresentPatrons++;
-            Console.WriteLine($"{patronName} arrived");
             PrintPatronInfo();
-            Thread.Sleep((int)pub.Options.PatronArriveTiming);
-            pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
-            pub.WaitingPatrons.Enqueue(this);
-            pub.Log($"{patronName} is waiting to be served", LogBox.Patron);
+        }
+        public void Run() {
+            Task.Run(() =>
+            {
+                pub.TotalPresentPatrons++;
+                Thread.Sleep((int)pub.Options.PatronArriveTiming);
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
+                pub.WaitingPatrons.Enqueue(this);
+                pub.Log($"{patronName} is waiting to be served", LogBox.Patron);
 
-            WaitForGlass();
-            WaitForTable();
-            DrinkAndLeave();
+                WaitForGlass();
+                WaitForTable();
+                DrinkAndLeave();
+                pub.TotalPresentPatrons--;
+            }, pub.mainWindow.token);
         }
 
         private void PrintPatronInfo()
@@ -106,7 +112,6 @@ namespace Labb6
 
             lock (pub.TakenChairs)
             {
-                pub.TotalPresentPatrons--;
                 pub.TakenChairs.Remove(this);
                 pub.Table.Push(glass);
                 pub.Log($"{patronName} left", LogBox.Patron);

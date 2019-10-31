@@ -10,14 +10,14 @@ namespace Labb6
     public class Pub
     {
         public bool IsOpen { get; set; } = false;
-        internal MainWindow mainWindow;
-
+        internal MainWindow mainWindow { get; set; }
         internal ConcurrentQueue<Patron> WaitingPatrons { get; set; }
         internal ConcurrentStack<Glass> Shelf { get; set; }
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
         public int TotalPresentPatrons { get; internal set; }
+        public List<Patron> TotalPatrons { get; internal set; }
         public bool WaitressIsPresent { get; set; } = true;
         public bool BartenderIsPresent { get; set; } = true;
         public PubOptions Options;
@@ -41,11 +41,18 @@ namespace Labb6
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
             Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)Options.NumberOfGlasses).Select(i => new Glass()));
+            TotalPatrons = new List<Patron>();
             InfoPrinter();
             CountDown();
-            Task.Run(() => new Bouncer(this), mainWindow.token);
-            Task.Run(() => new Bartender(this), mainWindow.token);
-            Task.Run(() => new Waitress(this), mainWindow.token);
+
+            var bouncer = new Bouncer(this);
+            bouncer.Run();
+
+            var bartender = new Bartender(this);
+            bartender.Run();
+
+            var waitress = new Waitress(this);
+            waitress.Run();
         }
 
         public void Close()
@@ -80,16 +87,16 @@ namespace Labb6
             {
                 while(this.IsOpen && TimeUntilClosing > 0)
                 {
-                    if (mainWindow.token.IsCancellationRequested)
-                        return;
-
                     Thread.Sleep((int)(1000/Options.Speed));
                     this.TimeUntilClosing--;
                     string time = $"{TimeUntilClosing / 60}:{TimeUntilClosing % 60}";
                     mainWindow.PrintTime(time);
                     Console.WriteLine(TimeUntilClosing + ", " + time);
                 }
-                Close();
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    mainWindow.SetBarState(BarState.Close);
+                });
             }, mainWindow.token);
         }
     }
