@@ -7,10 +7,10 @@ namespace Labb6
     public class Bouncer
     {
         private readonly Pub pub;
-        private Random random;
+        private readonly Random random;
         public Bouncer(Pub pub)
         {
-            this.pub = pub ?? throw new ArgumentNullException(nameof(pub));
+            this.pub = pub;
             this.random = new Random();
         }
 
@@ -23,7 +23,7 @@ namespace Labb6
                         return;
 
                     int wait = random.Next((int)pub.Options.BouncerMinTiming, (int)pub.Options.BouncerMaxTiming);
-                    Thread.Sleep(wait);
+                    Thread.Sleep((int)(wait * pub.Options.Speed));
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                     CreatePatron();
                 }

@@ -40,9 +40,9 @@ namespace Labb6
             PrintPatronInfo();
         }
         public void Run() {
+            pub.TotalPresentPatrons++;
             Task.Run(() =>
             {
-                pub.TotalPresentPatrons++;
                 Thread.Sleep((int)pub.Options.PatronArriveTiming);
                 pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 pub.WaitingPatrons.Enqueue(this);
@@ -67,7 +67,7 @@ namespace Labb6
         {
             while (true)
             {
-                pub.mainWindow.pauseBouncerAndPatrons.WaitOne(Timeout.Infinite);
+                pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 if (pub.BarDisk.ContainsKey(this))
                 {
                     lock (pub.BarDisk)
@@ -107,7 +107,8 @@ namespace Labb6
         private void DrinkAndLeave()
         {
             pub.Log($"{patronName} enjoys the drink...", LogBox.Patron);
-            Thread.Sleep(new Random().Next((int)pub.Options.PatronMinDrinkTiming, (int)pub.Options.PatronMaxDrinkTiming));
+            int wait = new Random().Next((int)pub.Options.PatronMinDrinkTiming, (int)pub.Options.PatronMaxDrinkTiming);
+            Thread.Sleep((int)(wait * pub.Options.Speed));
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
             lock (pub.TakenChairs)

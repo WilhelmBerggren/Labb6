@@ -45,14 +45,9 @@ namespace Labb6
             InfoPrinter();
             CountDown();
 
-            var bouncer = new Bouncer(this);
-            bouncer.Run();
-
-            var bartender = new Bartender(this);
-            bartender.Run();
-
-            var waitress = new Waitress(this);
-            waitress.Run();
+            new Bouncer(this).Run();
+            new Bartender(this).Run();
+            new Waitress(this).Run();
         }
 
         public void Close()
