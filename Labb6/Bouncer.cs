@@ -23,7 +23,7 @@ namespace Labb6
                         return;
 
                     int wait = random.Next((int)pub.Options.BouncerMinTiming, (int)pub.Options.BouncerMaxTiming);
-                    Thread.Sleep((int)(wait * pub.Options.Speed));
+                    Thread.Sleep((int)(wait / pub.Options.Speed));
                     pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                     CreatePatron();
                 }

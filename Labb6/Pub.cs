@@ -69,7 +69,7 @@ namespace Labb6
             {
                 while (BartenderIsPresent && WaitressIsPresent)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep((int)(1000 / Options.Speed));
                     Log($"Patrons present: {TotalPresentPatrons}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {TotalPresentPatrons - TakenChairs.Count}\n" +
                         $"\tAvailable chairs: {Options.NumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
                 };
@@ -82,7 +82,7 @@ namespace Labb6
             {
                 while(this.IsOpen && TimeUntilClosing > 0)
                 {
-                    Thread.Sleep((int)(1000/Options.Speed));
+                    Thread.Sleep((int)(1000 / Options.Speed));
                     this.TimeUntilClosing--;
                     string time = $"{TimeUntilClosing / 60}:{TimeUntilClosing % 60}";
                     mainWindow.PrintTime(time);

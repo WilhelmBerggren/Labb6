@@ -44,7 +44,7 @@ namespace Labb6
             if (glasses.Count != 0)
             {
                 pub.Log("Goes to collect glasses...", LogBox.Waitress);
-                Thread.Sleep((int)pub.Options.WaitressClearTiming);
+                Thread.Sleep((int)(pub.Options.WaitressClearTiming / pub.Options.Speed));
                 pub.mainWindow.pauseWaitress.WaitOne();
             }
         }
@@ -55,7 +55,7 @@ namespace Labb6
             {
                 pub.Log("Does dishes...", LogBox.Waitress);
 
-                Thread.Sleep((int)pub.Options.WaitressPlaceTiming);
+                Thread.Sleep((int)(pub.Options.WaitressPlaceTiming / pub.Options.Speed));
                 pub.mainWindow.pauseWaitress.WaitOne();
                 while (glasses.Count > 0)
                 {

@@ -29,7 +29,7 @@ namespace Labb6
                         if (currentGlass != null)
                         {
                             pub.Log("Got glass and pouring beer...", LogBox.Bartender);
-                            Thread.Sleep((int)pub.Options.BartenderPourTiming);
+                            Thread.Sleep((int)(pub.Options.BartenderPourTiming / pub.Options.Speed));
                             pub.mainWindow.pauseBartender.WaitOne();
                             lock (pub.BarDisk)
                             {
@@ -75,7 +75,7 @@ namespace Labb6
                 if (pub.Shelf.TryPeek(out _))
                 {
                     pub.Log("Collecting glass...", LogBox.Bartender);
-                    Thread.Sleep((int)pub.Options.BartenderGlassTiming);
+                    Thread.Sleep((int)(pub.Options.BartenderGlassTiming / pub.Options.Speed);
                     pub.mainWindow.pauseBartender.WaitOne();
 
                     pub.Shelf.TryPop(out Glass glass);

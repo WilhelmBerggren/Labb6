@@ -43,7 +43,7 @@ namespace Labb6
             pub.TotalPresentPatrons++;
             Task.Run(() =>
             {
-                Thread.Sleep((int)pub.Options.PatronArriveTiming);
+                Thread.Sleep((int)(pub.Options.PatronArriveTiming / pub.Options.Speed));
                 pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 pub.WaitingPatrons.Enqueue(this);
                 pub.Log($"{patronName} is waiting to be served", LogBox.Patron);
@@ -91,7 +91,7 @@ namespace Labb6
                 {
                     lock (pub.TakenChairs)
                     {
-                        Thread.Sleep((int)pub.Options.PatronTableTiming);
+                        Thread.Sleep((int)(pub.Options.PatronTableTiming / pub.Options.Speed));
                         pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                         if(pub.TakenChairs.Count < pub.Options.NumberOfChairs)
                             pub.TakenChairs.Add(this);
@@ -108,7 +108,7 @@ namespace Labb6
         {
             pub.Log($"{patronName} enjoys the drink...", LogBox.Patron);
             int wait = new Random().Next((int)pub.Options.PatronMinDrinkTiming, (int)pub.Options.PatronMaxDrinkTiming);
-            Thread.Sleep((int)(wait * pub.Options.Speed));
+            Thread.Sleep((int)(wait / pub.Options.Speed));
             pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
 
             lock (pub.TakenChairs)
