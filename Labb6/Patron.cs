@@ -44,13 +44,14 @@ namespace Labb6
             Console.WriteLine($"{Name} enqueued");
             Task.Run(() =>
             {
-                pub.WaitingPatrons.Enqueue(this);
                 Thread.Sleep((int)(pub.Options.PatronArriveTiming / pub.Options.Speed));
+                pub.WaitingPatrons.Enqueue(this);
+
                 pub.mainWindow.pauseBouncerAndPatrons.WaitOne();
                 Ready = true;
                 Console.WriteLine($"{Name} ready");
                 pub.Log($"{Name} is waiting to be served", LogBox.Patron);
-
+                
                 WaitForGlass();
                 WaitForTable();
                 DrinkAndLeave();
@@ -80,6 +81,7 @@ namespace Labb6
                     pub.Log($"{Name} got a glass", LogBox.Patron);
                     return;
                 }
+                Thread.Sleep(50);
             }
         }
 
@@ -103,6 +105,7 @@ namespace Labb6
                     pub.Log($"{Name} found a chair", LogBox.Patron);
                     return;
                 }
+                Thread.Sleep(50);
             }
         }
 
