@@ -150,7 +150,7 @@ namespace Labb6
             }
             else
             {
-                SpeedSlider.Value = 1;
+                this.pub.Options.Speed = SpeedSlider.Value;
                 PatronListBox.Items.Clear();
                 BartenderListBox.Items.Clear();
                 WaitressListBox.Items.Clear();

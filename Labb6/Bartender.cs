@@ -31,7 +31,7 @@ namespace Labb6
                             TryGetGlass();
                         else
                         {
-                            pub.Log($"Got glass and pouring beer for {currentPatron.Name}", LogBox.Bartender);
+                            pub.Log($"Pouring beer for {currentPatron.Name}", LogBox.Bartender);
                             Thread.Sleep((int)(pub.Options.BartenderPourTiming / pub.Options.Speed));
                             pub.mainWindow.pauseBartender.WaitOne();
                             lock (pub.BarDisk)
