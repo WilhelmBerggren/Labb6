@@ -128,7 +128,7 @@ namespace Labb6
 
                 Task.Run(() =>
                 {
-                    while (pub.TotalPresentPatrons > 0 || pub.BartenderIsPresent || pub.WaitressIsPresent)
+                    while ((pub.WaitingPatrons.Count + pub.BarDisk.Count) > 0 || pub.BartenderIsPresent || pub.WaitressIsPresent)
                         Dispatcher.Invoke(() => { ToggleBarOpenButton.IsEnabled = false; });
 
                     Dispatcher.Invoke(() => { 
@@ -195,7 +195,6 @@ namespace Labb6
 
         public void LogEvent(string text, LogBox textblock)
         {
-            Console.WriteLine(textblock + ": " + text);
             switch (textblock)
             {
                 case LogBox.Event:

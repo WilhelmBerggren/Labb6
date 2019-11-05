@@ -16,12 +16,11 @@ namespace Labb6
         internal Dictionary<Patron, Glass> BarDisk { get; set; }
         internal ConcurrentStack<Glass> Table { get; set; }
         internal List<Patron> TakenChairs { get; set; }
-        public int TotalPresentPatrons { get; internal set; }
-        public List<Patron> TotalPatrons { get; internal set; }
         public bool WaitressIsPresent { get; set; } = true;
         public bool BartenderIsPresent { get; set; } = true;
         public PubOptions Options;
         public int TimeUntilClosing { get; set; }
+        internal object PatronLock = new object();
 
         public Pub(MainWindow mainWindow)
         {
@@ -41,7 +40,6 @@ namespace Labb6
             TakenChairs = new List<Patron>();
             BarDisk = new Dictionary<Patron, Glass>();
             Shelf = new ConcurrentStack<Glass>(Enumerable.Range(0, (int)Options.NumberOfGlasses).Select(i => new Glass()));
-            TotalPatrons = new List<Patron>();
             InfoPrinter();
             CountDown();
 
@@ -59,8 +57,7 @@ namespace Labb6
         public void Log(string text, LogBox listbox)
         {
             string timeStamp = DateTime.Now.ToString("T");
-            string addSpace = " ";
-            mainWindow.LogEvent(timeStamp + addSpace + text, listbox);
+            mainWindow.LogEvent($"{timeStamp} text", listbox);
         }
 
         private void InfoPrinter()
@@ -69,8 +66,8 @@ namespace Labb6
             {
                 while (BartenderIsPresent && WaitressIsPresent)
                 {
-                    Thread.Sleep((int)(1000 / Options.Speed));
-                    Log($"Patrons present: {TotalPresentPatrons}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {TotalPresentPatrons - TakenChairs.Count}\n" +
+                    Thread.Sleep((int)(100 / Options.Speed));
+                    Log($"Patrons present: {(WaitingPatrons.Count + TakenChairs.Count)}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {WaitingPatrons.Count}\n" +
                         $"\tAvailable chairs: {Options.NumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
                 };
             }, mainWindow.token);
@@ -84,9 +81,10 @@ namespace Labb6
                 {
                     Thread.Sleep((int)(1000 / Options.Speed));
                     this.TimeUntilClosing--;
-                    string time = $"{TimeUntilClosing / 60}:{TimeUntilClosing % 60}";
+                    string minutes = $"{TimeUntilClosing / 60}".PadLeft(2, '0');
+                    string seconds = $"{TimeUntilClosing % 60}".PadLeft(2, '0');
+                    string time = $"{minutes}:{seconds}";
                     mainWindow.PrintTime(time);
-                    Console.WriteLine(TimeUntilClosing + ", " + time);
                 }
                 mainWindow.Dispatcher.Invoke(() =>
                 {

@@ -20,10 +20,10 @@ namespace Labb6
             pub.Log("Arrived", LogBox.Waitress);
             Task.Run(() =>
             {
-                while (pub.IsOpen || pub.Shelf.Count != pub.Options.NumberOfGlasses || pub.TotalPresentPatrons > 0)
+                while (pub.IsOpen || pub.Shelf.Count != pub.Options.NumberOfGlasses || (pub.WaitingPatrons.Count + pub.BarDisk.Count) > 0)
                 {
                     TakeEmptyGlasses();
-                    PlaceGlass();
+                    PlaceGlasses();
                 }
                 pub.Log("Left the bar with her best friend, the bartender.\n", LogBox.Waitress);
                 pub.WaitressIsPresent = false;
@@ -49,7 +49,7 @@ namespace Labb6
             }
         }
 
-        private void PlaceGlass()
+        private void PlaceGlasses()
         {
             if (glasses.Count > 0)
             {
@@ -61,6 +61,7 @@ namespace Labb6
                 {
                     pub.Shelf.Push(glasses.Pop());
                 }
+
                 pub.Log("Placed clean glasses in shelf...", LogBox.Waitress);
             }
         }
