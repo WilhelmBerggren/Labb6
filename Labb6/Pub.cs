@@ -57,7 +57,7 @@ namespace Labb6
         public void Log(string text, LogBox listbox)
         {
             string timeStamp = DateTime.Now.ToString("T");
-            mainWindow.LogEvent($"{timeStamp} text", listbox);
+            mainWindow.LogEvent($"{timeStamp} {text}", listbox);
         }
 
         private void InfoPrinter()
@@ -66,7 +66,7 @@ namespace Labb6
             {
                 while (BartenderIsPresent && WaitressIsPresent)
                 {
-                    Thread.Sleep((int)(100 / Options.Speed));
+                    Thread.Sleep((int)(1000 / Options.Speed));
                     Log($"Patrons present: {(WaitingPatrons.Count + TakenChairs.Count)}. Drinking patrons: {TakenChairs.Count}. Waiting Patrons: {WaitingPatrons.Count}\n" +
                         $"\tAvailable chairs: {Options.NumberOfChairs - TakenChairs.Count}. Available Glasses: {Shelf.Count}\n", LogBox.Event);
                 };
