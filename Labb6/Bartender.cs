@@ -6,9 +6,9 @@ namespace Labb6
 {
     public class Bartender
     {
-        Pub pub;
-        Glass currentGlass;
-        Patron currentPatron;
+        readonly Pub pub;
+        private Glass currentGlass;
+        private Patron currentPatron;
         public Bartender(Pub pub)
         {
             this.pub = pub;
