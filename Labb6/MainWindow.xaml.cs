@@ -143,7 +143,6 @@ namespace Labb6
                         Pause_WaitressButton.IsEnabled = false;
                         TestCase.IsEnabled = true;
                         ToggleBarOpenButton.Content = "Open bar";
-                        PanicButton.Content = "Panic! Pause all threads!";
                     });
 
                 });
@@ -164,23 +163,6 @@ namespace Labb6
                 Pause_BartenderButton.IsEnabled = true;
                 Pause_WaitressButton.IsEnabled = true;
                 TestCase.IsEnabled = false;
-            }
-        }
-
-        private void Panic_Click(object sender, RoutedEventArgs e)
-        {
-            if (pub == null)
-                return;
-
-            if (PanicButton.Content.ToString() == "Panic! Pause all threads!")
-            {
-                SetBarState(BarState.Close);
-                PanicButton.Content = "Phew! Crisis averted... :-)";
-            }
-            else
-            {
-                SetBarState(BarState.Open);
-                PanicButton.Content = "Panic! Pause all threads!";
             }
         }
 

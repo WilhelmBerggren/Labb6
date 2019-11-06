@@ -21,7 +21,6 @@
         <Button Content="Pause" Name="Pause_WaitressButton" Click="Pause_Waitress_Click" IsEnabled="false" HorizontalAlignment="Left" Margin="9,277.6,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Pause" Name="Pause_GuestsButton" Click="Pause_Guests_Click" IsEnabled="false" HorizontalAlignment="Left" Margin="15,458.6,0,0" VerticalAlignment="Top" Width="100" Grid.Row="1"/>
         <Button Content="Open bar" Name="ToggleBarOpenButton" Click="ToggleBarOpen_Click" HorizontalAlignment="Left" Margin="364,628.6,0,0" VerticalAlignment="Top" Width="310" Grid.Row="1"/>
-        <Button Content="Panic! Pause all threads!" Name="PanicButton" IsEnabled="true" Click="Panic_Click" HorizontalAlignment="Left" Margin="692,628.6,0,0" VerticalAlignment="Top" Width="157" Grid.Row="1"/>
         <ListBox Name="EventListBox" HorizontalAlignment="Left" Margin="692,62.6,0,0" VerticalAlignment="Top" Height="543" Width="588" Grid.Row="1"/>
         <ComboBox Name="TestCase" HorizontalAlignment="Left" Margin="220,626.6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="120" Height="19">
             <ComboBoxItem IsSelected="True">Default</ComboBoxItem>
